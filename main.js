@@ -40,11 +40,29 @@ class Vector2 {
     }
 }
 
+
 class Boid {
     constructor(){
-        this.position = (new Vector2()).random()
-        this.velocity = (new Vector2()).random()
+        this.position = new Vector2()
+        this.velocity = new Vector2()
+        this.position.random()
+        this.velocity.random()
+    }
+    step(){
+        
     }
 }
 
-print(new Boid())
+function GenerateBoids(count) {
+    var boids = []
+    for (var i = 0; i < count; i++) {
+        boids.push(new Boid())
+    }
+}
+
+boids = GenerateBoids(10)
+
+for (var i = 0; i < 1000; i++) {
+    boids.forEach((boid)=>boid.step())
+    boids.forEach((boid)=>boid.draw())
+}
