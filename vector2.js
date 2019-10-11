@@ -10,4 +10,4 @@ class Vector2 {
 }
 
 pos = new Vector2(1,2)
-print(pos)
+console.log(pos)
