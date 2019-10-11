@@ -1,13 +1,31 @@
 class Vector2 {
-    constructor (a,b) {
-        this.x = a
-        this.y = b
+    constructor (x,y) {
+        `
+        Inputs: Two integers: x,y that will be the constructs of the vector
+        Outputs: None
+        Returns a unit vector with the same direction as the called vector
+        `
+        this.x = x
+        this.y = y
+    }
+    magnitude(){
+        `
+        Inputs: None
+        Outputs: A floating point number
+        Returns the length of the vector object
+        `
+        return Math.pow(Math.pow(this.x,2) + Math.pow(this.y,2),1/2)
     }
     unit(){
-        s = pow(a,2) + pow(b,2) + pow(c,2)
-        return pow(s,1/2)
+        `
+        Inputs: None
+        Outputs: A floating point number
+        Returns a unit vector with the same direction as the called vector
+        `
+        let size = this.magnitude()
+        return new Vector2(this.x/size,this.y/size)
     }
 }
 
 pos = new Vector2(1,2)
-console.log(pos)
+console.log(pos.unit())
