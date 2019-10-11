@@ -25,7 +25,15 @@ class Vector2 {
         let size = this.magnitude()
         return new Vector2(this.x/size,this.y/size)
     }
+    angle(){
+        `
+        Inputs: None
+        Outputs: A floating point number
+        Returns the radian angles from origin
+        `
+        return Math.acos(this.x/this.magnitude())
+    }
 }
 
 pos = new Vector2(1,2)
-console.log(pos.unit())
+console.log(pos.angle())
