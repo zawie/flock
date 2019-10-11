@@ -42,4 +42,4 @@ class Vector2 {
 
 pos = new Vector2()
 pos.random()
-console.log(pos.angle())
+console.log(pos)
