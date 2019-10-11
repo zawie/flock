@@ -40,6 +40,11 @@ class Vector2 {
     }
 }
 
-pos = new Vector2()
-pos.random()
-console.log(pos)
+class Boid {
+    constructor(){
+        this.position = (new Vector2()).random()
+        this.velocity = (new Vector2()).random()
+    }
+}
+
+print(new Boid())
