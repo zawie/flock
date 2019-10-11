@@ -38,6 +38,14 @@ class Vector2 {
         this.x = Math.cos(theta)
         this.y = Math.sin(theta)
     }
+    scale(L){
+        this.x = this.x*L
+        this.y = this.y*L
+    }
+    add(vect){
+        this.x += vect.x
+        this.y += vect.y
+    }
 }
 
 
