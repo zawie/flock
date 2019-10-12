@@ -132,43 +132,39 @@ class Boid {
             ctx.stroke();
         }
     }
-    steer(boids){
-        const nearby = this.getVisible(boids)
+    steer(nearby){
         //Seperation
-        var totalDelta = new Vector2(0,0)
+        var pushDeltas = new Vector2(0,0)
         nearby.forEach(boid => {
-            const diff = this.position.sub(boid.position);
+            const diff = this.position.sub(boid.position)
             const delta = diff.scale(1/diff.magnitude())
-            totalDelta = totalDelta.add(delta)
-
+            pushDeltas = pushDeltas.add(delta)
         })
-        var seperationDelta = this.direction.add(totalDelta.unit()).unit()
+        let seperationDelta = pushDeltas.scale(1/nearby.length)
         // Allignment
-        var allignmentDelta = new Vector2()
-        if (nearby.length > 0) {
-            var total_angle = 0
-            nearby.forEach(boid => {
-                total_angle += boid.direction.angle()
-            })
-            const theta = total_angle/nearby.length
-            var allignmentDelta = new Vector2 (Math.sin(theta),Math.cos(theta))
-        }
+        var total_angle = 0
+        nearby.forEach(boid => {
+            total_angle += boid.direction.angle()
+        })
+        const theta = total_angle/nearby.length
+        let allignmentDelta = new Vector2 (Math.sin(theta),Math.cos(theta))
         // Cohesion
         var cohesionDelta = new Vector2()
-        if (nearby.length > 0) {
-            var total_position = new Vector2()
-            nearby.forEach(boid => {
-                total_position = total_position.add(boid.position)
-            })
-            const average_position = total_position.scale(1/nearby.length)
-            var cohesionDelta = this.position.sub(average_position).unit()
-        }
+        var total_position = new Vector2()
+        nearby.forEach(boid => {
+            total_position = total_position.add(boid.position)
+        })
+        const average_position = total_position.scale(1/nearby.length)
+        var cohesionDelta = this.position.sub(average_position).unit()
         // Change direction
-        const desiredDelta = cohesionDelta.add(seperationDelta).add(allignmentDelta).unit()
-        this.direction = this.direction.average(desiredDelta)
+        const totalDelta = cohesionDelta.add(seperationDelta).add(allignmentDelta)
+        this.direction = this.direction.average(totalDelta).unit()
     }
     heartbeat(boids){
-        this.steer(boids)
+        const nearby = this.getVisible(boids)
+        if (nearby.length > 0) {
+            this.steer(nearby)
+        }
         this.step()
         this.draw()      
     }
