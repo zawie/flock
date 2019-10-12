@@ -56,12 +56,23 @@ class Vector2 {
 
 
 class Boid {
-    constructor(){
+    constructor(isMarked = false){
+        this.marked = isMarked
         this.position = new Vector2()
         this.velocity = new Vector2()
         this.position.random()
         this.velocity.randomdirection()
         this.velocity.scale(.001)
+    }
+    steer(boids){
+        boids.forEach(boid => {
+            if (boid != self) {
+                //const distance = boid.position.sub(self.position).magnitude()
+                //if (distance < .1) {
+                    
+                //}
+            }
+        })
     }
     step(){
         this.position = this.position.add(this.velocity)
@@ -88,26 +99,35 @@ class Boid {
         ctx.arc(x,y,5,0,2*Math.PI);
         ctx.moveTo(x,y)
         ctx.lineTo(dx,dy);
-        ctx.stroke();        
+        ctx.closePath();
+        ctx.stroke();
+        if (this.marked) {
+            console.log('Marked!')
+            ctx.fillStyle = "#3370d4"; //blue
+            ctx.fill();
+        }
+    }
+    heartbeat(boids){
+        this.steer(boids)
+        this.step()
+        this.draw()      
     }
 }
 
 function GenerateBoids(count) {
     var boids = []
     for (var i = 0; i < count; i++) {
-        boids.push(new Boid())
+        boids.push(new Boid(i==0))
     }
     return boids
 }
 
 function animate(boids) {
     canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
-    //boids.forEach(boid => steer(boid,boids));
-    boids.forEach(boid => boid.step());
-    boids.forEach(boid => boid.draw());
+    boids.forEach(boid => boid.heartbeat(boids))
 }
 
-boids = GenerateBoids(100)
+boids = GenerateBoids(10)
 window.setInterval(() => {
     animate(boids)
 }, 10);
