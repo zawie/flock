@@ -85,12 +85,10 @@ class Boid {
         this.fieldOfView = 0.25 * 2*Math.PI
         //
         this.position = new Vector2()
-        this.velocity = new Vector2()
-        this.acceleration = .002
-        this.maxSpeed = .0025
+        this.direction = new Vector2()
+        this.speed = .001
         this.position.random()
-        this.velocity.randomdirection()
-        this.tendency = this.velocity
+        this.direction.randomdirection()
     }
     getVisible(boids){
         var nearby = new Array();
@@ -108,12 +106,11 @@ class Boid {
         return nearby
     }
     step(){
-        var desired = this.velocity.sub(this.tendency).unit()
-        this.velocity = this.velocity.add(desired.scale(this.acceleration))
-        if (this.velocity.magnitude() > this.maxSpeed) {
-            this.velocity = this.velocity.unit().scale(this.maxSpeed)
-        }
-        this.position = this.position.add(this.velocity)
+        var noise = new Vector2()
+        noise.randomdirection()
+        this.direction = this.direction.add(noise.scale(.1)).unit()
+        var velocity = this.direction.scale(this.speed)
+        this.position = this.position.add(velocity)
         //Wrap around
         if (this.position.y < 0){
             this.position.y = 1
@@ -130,8 +127,8 @@ class Boid {
         let canvas = document.getElementById('canvas')
         var x = this.position.x*canvas.width
         var y = this.position.y*canvas.height
-        var dx = (this.position.x + this.velocity.x*5)*canvas.width
-        var dy = (this.position.y + this.velocity.y*5)*canvas.height
+        var dx = (this.position.x + this.direction.x*this.speed*20)*canvas.width
+        var dy = (this.position.y + this.direction.y*this.speed*20)*canvas.height
         var ctx = canvas.getContext("2d");
         ctx.beginPath();
         ctx.arc(x,y,5,0,2*Math.PI);
@@ -180,7 +177,7 @@ class Boid {
         var cohesionDelta = this.position.sub(average_position).unit()
         // Change direction
         const totalDelta = seperationDelta.average(cohesionDelta).average(allignmentDelta)
-        this.tendency = totalDelta.unit()
+        this.direction = totalDelta.unit()
     }
     heartbeat(boids){
         const nearby = this.getVisible(boids)
@@ -219,7 +216,7 @@ function toggle() {
         play()
     }
 }
-boids = GenerateBoids(10)
+boids = GenerateBoids(1)
 play()
 
 var playing = true
