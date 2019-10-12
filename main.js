@@ -42,6 +42,11 @@ class Vector2 {
         this.x = Math.cos(theta)
         this.y = Math.sin(theta)
     }
+
+    average(vect){
+        return this.add(vect).scale(1/2)
+    }
+
     random(){
         this.x = Math.random()
         this.y = Math.random()
@@ -67,7 +72,7 @@ class Boid {
     constructor(isMarked = false){
         this.marked = isMarked
         //
-        this.radius = .1
+        this.radius = .05
         //
         this.position = new Vector2()
         this.direction = new Vector2()
@@ -137,10 +142,30 @@ class Boid {
             totalDelta = totalDelta.add(delta)
 
         })
-        var unitDelta = totalDelta.unit()
-        var new_direction = this.direction.add(unitDelta)
-        this.direction = new_direction.unit()
-        //Cohesion
+        var seperationDelta = this.direction.add(totalDelta.unit()).unit()
+        // Allignment
+        var allignmentDelta = new Vector2()
+        if (nearby.length > 0) {
+            var total_angle = 0
+            nearby.forEach(boid => {
+                total_angle += boid.direction.angle()
+            })
+            const theta = total_angle/nearby.length
+            var allignmentDelta = new Vector2 (Math.sin(theta),Math.cos(theta))
+        }
+        // Cohesion
+        var cohesionDelta = new Vector2()
+        if (nearby.length > 0) {
+            var total_position = new Vector2()
+            nearby.forEach(boid => {
+                total_position = total_position.add(boid.position)
+            })
+            const average_position = total_position.scale(1/nearby.length)
+            var cohesionDelta = this.position.sub(average_position).unit()
+        }
+        // Change direction
+        const desiredDelta = cohesionDelta.add(seperationDelta).add(allignmentDelta).unit()
+        this.direction = this.direction.average(desiredDelta)
     }
     heartbeat(boids){
         this.steer(boids)
@@ -178,7 +203,7 @@ function toggle() {
         }, 10);  
     }
 }
-boids = GenerateBoids(50)
+boids = GenerateBoids(100)
 play()
 
 var playing = true
