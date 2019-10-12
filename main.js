@@ -82,7 +82,10 @@ class Boid {
         this.marked = isMarked
         //
         this.radius = .1
-        this.fieldOfView = 0.25 * 2*Math.PI
+        this.fieldOfView = 0.8 * 2*Math.PI
+        this.allignTendency = .05
+        this.seperateTendency = .01
+        this.coohesionTendency = 1
         //
         this.position = new Vector2()
         this.direction = new Vector2()
@@ -141,22 +144,7 @@ class Boid {
             ctx.fill();
         }
     }
-    steer(nearby){
-        //Seperation
-        var pushDeltas = new Vector2(0,0)
-        nearby.forEach(boid => {
-            const diff = this.position.sub(boid.position)
-            const delta = diff.unit().scale(-1/diff.magnitude())
-            pushDeltas = pushDeltas.add(delta)
-        })
-        let seperationDelta = pushDeltas.scale(1/nearby.length)
-        // Allignment
-        var total_angle = 0
-        nearby.forEach(boid => {
-            total_angle += boid.direction.angle()
-        })
-        const theta = total_angle/nearby.length
-        let allignmentDelta = new Vector2 (Math.sin(theta),Math.cos(theta))
+    cohesion(nearby){
         // Cohesion
         var cohesionDelta = new Vector2()
         var total_position = new Vector2()
@@ -164,15 +152,34 @@ class Boid {
             total_position = total_position.add(boid.position)
         })
         const average_position = total_position.scale(1/nearby.length)
-        var cohesionDelta = this.position.sub(average_position).unit()
-        // Change direction
-        const totalDelta = seperationDelta.average(cohesionDelta).average(allignmentDelta)
-        this.direction = totalDelta.unit()
+        var delta = average_position.sub(this.position).unit()
+        this.direction = this.direction.add(delta.scale(this.coohesionTendency))
+    }
+    seperate(nearby){
+        //Seperation
+        var seperationDelta = new Vector2(0,0)
+        nearby.forEach(boid => {
+            const diff = this.position.sub(boid.position)
+            const delta = diff.unit().scale(.1/diff.magnitude())
+            seperationDelta = seperationDelta.add(delta)
+        })
+        this.direction = this.direction.add(seperationDelta.scale(this.seperateTendency))
+    }
+    align(nearby) {
+        // Allignment
+        var total_angle = 0
+        nearby.forEach(boid => {
+            total_angle += boid.direction.angle()
+        })
+        const theta = total_angle/nearby.length
+        let delta = new Vector2 (Math.sin(theta),Math.cos(theta))
+        this.direction = this.direction.add(delta.scale(this.allignTendency))
     }
     heartbeat(boids){
         const nearby = this.getVisible(boids)
         if (nearby.length > 0) {
-            this.steer(nearby)
+            this.align(nearby)
+            this.seperate(nearby)
         }
         this.step()
         this.draw()      
