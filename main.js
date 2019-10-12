@@ -77,9 +77,39 @@ class Vector2 {
     }
 }
 
+class Enviornment {
+    constructor(canvas,wrapAround = false) {
+        this.population = new Array();
+        this.canvas = canvas
+    }
+    addRectangle(){
+
+    }
+    addCircle(){
+
+    }
+    generateBoid(count = 1, pos = new Vector2(Math.random(),Math.random())){
+        for (var i = 0; i < count; i++) {
+            this.population.push(new Boid(pos, this, this.population.length == 0))
+        }
+    }
+    step(){
+        this.canvas.getContext("2d").clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.population.forEach(boid => boid.heartbeat())
+    }
+    play(){
+        this.current_interval = window.setInterval(() => {
+            this.step()
+        }, 10); 
+    }
+    pause(){
+        window.stopInterval(this.current_interval)
+    }
+}
 class Boid {
-    constructor(pos = new Vector2(Math.random(),Math.random()),isMarked = false){
+    constructor(pos = new Vector2(), enviornment, isMarked = false){
         this.marked = isMarked
+        this.enviornment = enviornment
         //
         this.radius = .025
         this.fieldOfView = 0.8 * 2*Math.PI
@@ -126,7 +156,7 @@ class Boid {
         }
     }
     draw(){
-        let canvas = document.getElementById('canvas')
+        let canvas = this.enviornment.canvas
         var x = this.position.x*canvas.width
         var y = this.position.y*canvas.height
         var dx = (this.position.x + this.direction.x*this.speed*5)*canvas.width
@@ -181,8 +211,8 @@ class Boid {
         let delta = new Vector2 (Math.sin(theta),Math.cos(theta))
         this.direction = this.direction.add(delta.scale(this.allignTendency))
     }
-    heartbeat(boids){
-        const nearby = this.getVisible(boids)
+    heartbeat(){
+        const nearby = this.getVisible(this.enviornment.population)
         if (nearby.length > 0) {
             this.align(nearby)
             this.seperate(nearby)
@@ -192,29 +222,12 @@ class Boid {
     }
 }
 
-function GenerateBoids(count) {
-    var boids = []
-    for (var i = 0; i < count; i++) {
-        const pos = new Vector2(Math.random(),Math.random())
-        boids.push(new Boid(pos,i==0))
-    }
-    return boids
-}
+let canvas = document.getElementById('canvas')
+let system = new Enviornment(canvas, true)
+system.generateBoid(100)
+system.play()
 
-function animate(boids) {
-    canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
-    boids.forEach(boid => boid.heartbeat(boids))
-}
-
-var Boids = GenerateBoids(250)
-var current_interval = NaN
-function play() {
-    current_interval = window.setInterval(() => {
-        animate(Boids)
-    }, 10);    
-}
-play()
-
+//Mouse Stuff
 function elePos(ele) { // jcgregorio
     var dx = ele.offsetLeft;
     var dy = ele.offsetTop;
@@ -225,14 +238,12 @@ function elePos(ele) { // jcgregorio
     }
     return new Vector2(dx,dy)
   }
-
-function printMousePos(event) {
+function onClick(event) {
     const pos = elePos(canvas)
     const click = new Vector2(event.clientX,event.clientY)
     const canvasPos = click.sub(pos)
     const relativePos = canvasPos.scale(1/canvas.width)
-    var boid = new Boid(relativePos,false)
-    Boids.push(boid)
+    system.generateBoid(5,relativePos)
   }
   
-  document.addEventListener("click", printMousePos);
+  document.addEventListener("click", onClick);
