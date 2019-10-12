@@ -55,9 +55,16 @@ class Boid {
         this.velocity = new Vector2()
         this.position.random()
         this.velocity.random()
+        this.velocity.scale(.05)
     }
     step(){
-        
+        this.position.add(this.velocity)
+    }
+    draw(canvas){
+        let context = canvas.getContext('2d');
+        if (context) {
+            context.fillRect(this.x*canvas.width,this.y*canvas.height,20,20);
+        }
     }
 }
 
@@ -66,11 +73,14 @@ function GenerateBoids(count) {
     for (var i = 0; i < count; i++) {
         boids.push(new Boid())
     }
+    return boids
 }
 
-boids = GenerateBoids(10)
+let canvas = document.getElementById('canvas');
+boids = GenerateBoids(1)
 
-for (var i = 0; i < 1000; i++) {
+for (var i = 0; i < 5; i++) {
     boids.forEach((boid)=>boid.step())
-    boids.forEach((boid)=>boid.draw())
+    boids.forEach((boid)=>boid.draw(canvas))
+    setTimeout(2000)
 }
