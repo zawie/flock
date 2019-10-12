@@ -26,16 +26,20 @@ class Vector2 {
     dot(vect){
         return this.x*vect.x + this.y*vect.y
     }
-    angle(vect = new Vector2(1,0)){
+    angle(vect){
         `Inputs: None
          Outputs: A floating point number
          Returns the radian angles from x-axis`
-        const numerator = this.dot(vect)
-        const denominator = this.magnitude()*vect.magnitude()
-        if (denominator == 0) {
-            return 0
+        if (vect) {
+            const numerator = this.dot(vect)
+            const denominator = this.magnitude()*vect.magnitude()
+            if (denominator == 0) {
+                return 0
+            } else {
+                return Math.acos(numerator/denominator)
+            }
         } else {
-            return Math.acos(numerator/denominator)
+            return Math.acos(this.unit().x)
         }
     }
     randomdirection(){
@@ -95,9 +99,6 @@ class Boid {
                 const delta = boid.position.sub(this.position)
                 if (delta.magnitude() < this.radius ) {
                     var theta = delta.angle(this.velocity)
-                    if (this.marked) {
-                        //console.log(180*theta/Math.PI,180*this.fieldOfView/2/Math.PI)
-                    }
                     if (theta < this.fieldOfView/2) {
                         nearby.push(boid)
                     }
@@ -144,8 +145,9 @@ class Boid {
             // radius picture
             ctx.beginPath();
             var theta = this.velocity.angle()
+            console.log(theta)
             const halfView = this.fieldOfView/2
-            ctx.arc(x,y,canvas.height*this.radius,theta-halfView,theta+halfView);
+            ctx.arc(x,y,canvas.height*this.radius, theta+Math.PI + halfView, theta+Math.PI - halfView, true);
             ctx.moveTo(x,y)
             ctx.lineTo(dx,dy);
             ctx.closePath();
@@ -217,7 +219,7 @@ function toggle() {
         play()
     }
 }
-boids = GenerateBoids(15)
+boids = GenerateBoids(10)
 play()
 
 var playing = true
