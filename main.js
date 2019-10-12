@@ -78,19 +78,18 @@ class Vector2 {
 }
 
 class Boid {
-    constructor(isMarked = false){
+    constructor(x=Math.randoom(),y=Math.random(),isMarked = false){
         this.marked = isMarked
         //
         this.radius = .1
         this.fieldOfView = 0.8 * 2*Math.PI
         this.allignTendency = .05
         this.seperateTendency = .01
-        this.coohesionTendency = 1
+        this.coohesionTendency = .5
         //
-        this.position = new Vector2()
+        this.position = new Vector2(x,y)
         this.direction = new Vector2()
         this.speed = .001
-        this.position.random()
         this.direction.randomdirection()
     }
     getVisible(boids){
@@ -189,7 +188,7 @@ class Boid {
 function GenerateBoids(count) {
     var boids = []
     for (var i = 0; i < count; i++) {
-        boids.push(new Boid(i==0))
+        boids.push(new Boid(Math.random(),Math.random(),i==0))
     }
     return boids
 }
@@ -199,22 +198,20 @@ function animate(boids) {
     boids.forEach(boid => boid.heartbeat(boids))
 }
 
+var Boids = GenerateBoids(1)
 var current_interval = NaN
 function play() {
     current_interval = window.setInterval(() => {
-        animate(boids)
+        animate(Boids)
     }, 10);    
 }
-function toggle() {
-    if (current_interval) {
-        window.clearInterval(current_interval)
-        current_interval = NaN
-    } else {
-        play()
-    }
-}
-boids = GenerateBoids(10)
 play()
 
-var playing = true
-window.addEventListener("click", toggle);
+function printMousePos(event) {
+    const x = event.screenX/canvas.width
+    const y = event.screenY/canvas.height
+    var boid = new Boid(x,y,false)
+    Boids.push(boid)
+  }
+  
+  document.addEventListener("click", printMousePos);
