@@ -87,36 +87,6 @@ class Vector2 {
         this.y = Math.sin(theta)
     }
 }
-
-class Enviornment {
-    constructor(canvas,wrapAround = false) {
-        this.population = new Array();
-        this.canvas = canvas
-    }
-    addRectangle(){
-
-    }
-    addCircle(){
-
-    }
-    generateBoid(count = 1, pos = new Vector2(Math.random(),Math.random())){
-        for (var i = 0; i < count; i++) {
-            this.population.push(new Boid(pos, this, this.population.length == 0))
-        }
-    }
-    step(){
-        this.canvas.getContext("2d").clearRect(0, 0, this.canvas.width, this.canvas.height);
-        this.population.forEach(boid => boid.heartbeat())
-    }
-    play(){
-        this.current_interval = window.setInterval(() => {
-            this.step()
-        }, 10); 
-    }
-    pause(){
-        window.stopInterval(this.current_interval)
-    }
-}
 class Boid {
     constructor(pos = new Vector2(), enviornment, isMarked = false){
         this.marked = isMarked
@@ -124,13 +94,14 @@ class Boid {
         //
         this.radius = .025
         this.fieldOfView = 0.8 * 2*Math.PI
-        this.allignTendency = .5
-        this.seperateTendency = .02
+        this.allignTendency = .75
+        this.seperateTendency = .5
         this.coohesionTendency = .75
+        this.chaosTendency = .1
         //
         this.position = pos
         this.direction = new Vector2()
-        this.speed = .001
+        this.speed = .0005
         this.direction.randomdirection()
     }
     getVisible(boids){
@@ -151,27 +122,16 @@ class Boid {
     step(){
         var noise = new Vector2()
         noise.randomdirection()
-        this.direction = this.direction.add(noise.scale(.1)).unit()
+        this.direction = this.direction.add(noise.scale(this.chaosTendency)).unit()
         var velocity = this.direction.scale(this.speed)
         this.position = this.position.add(velocity)
-        //Wrap around
-        if (this.position.y < 0){
-            this.position.y = 1
-        } else if(this.position.y > 1){
-            this.position.y = 0
-        }
-        if (this.position.x < 0){
-            this.position.x = 1
-        } else if(this.position.x > 1){
-            this.position.x = 0
-        }
     }
     draw(){
         let canvas = this.enviornment.canvas
         var x = this.position.x*canvas.width
         var y = this.position.y*canvas.height
-        var dx = (this.position.x + this.direction.x*this.speed*5)*canvas.width
-        var dy = (this.position.y + this.direction.y*this.speed*5)*canvas.height
+        var dx = (this.position.x + this.direction.x*this.speed*10)*canvas.width
+        var dy = (this.position.y + this.direction.y*this.speed*10)*canvas.height
         var ctx = canvas.getContext("2d");
         ctx.beginPath();
         ctx.arc(x,y,5,0,2*Math.PI);
@@ -207,7 +167,7 @@ class Boid {
         nearby.forEach(boid => {
             const diff = this.position.sub(boid.position)
             const distance = diff.magnitude()/this.radius
-            const delta = diff.unit().scale(this.seperateTendency/distance)
+            const delta = diff.unit().scale(this.seperateTendency/Math.pow(distance,2))
             seperationDelta = seperationDelta.add(delta)
         })
         this.direction = this.direction.add(seperationDelta.scale(1/nearby.length))
@@ -233,9 +193,66 @@ class Boid {
     }
 }
 
+
+class Enviornment {
+    constructor(canvas,wrapAround = false) {
+        this.population = new Array();
+        this.canvas = canvas
+        this.wrapAround = wrapAround
+    }
+    addRectangle(){
+
+    }
+    addCircle(){
+
+    }
+    generateBoids(count = 1, origin = new Vector2(Math.random(),Math.random())){
+        for (var i = 0; i < count; i++) {
+            console.log("ag")
+            var pos = origin
+            if (i > 0) {
+                var direction = new Vector2();
+                direction.randomdirection()
+                var pos = origin.add(direction.scale(.001*Math.pow(i,count)))
+            }
+            this.population.push(new Boid(pos, this, this.population.length == 0))
+       }
+    }
+    populate(count){
+        for (var i = 0; i < count; i++) {
+            this.generateBoids(1)
+        }  
+    }
+    step(){
+        this.canvas.getContext("2d").clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.population.forEach(boid => boid.heartbeat())
+        this.population.forEach(boid=>{
+            //Wrap-around
+            if (boid.position.y < 0){
+                boid.position.y = 1
+            } else if(boid.position.y > 1){
+                boid.position.y = 0
+            }
+            if (boid.position.x < 0){
+                boid.position.x = 1
+            } else if(boid.position.x > 1){
+                boid.position.x = 0
+            }
+        })
+    }
+    play(){
+        this.current_interval = window.setInterval(() => {
+            this.step()
+        }, 1); 
+    }
+    pause(){
+        window.stopInterval(this.current_interval)
+    }
+}
+
 let canvas = document.getElementById('canvas')
-let system = new Enviornment(canvas, true)
-system.generateBoid(100)
+let system = new Enviornment(canvas,true)
+system.populate(100)
 system.play()
 
 //Mouse Stuff
@@ -254,7 +271,7 @@ function onClick(event) {
     const click = new Vector2(event.clientX,event.clientY)
     const canvasPos = click.sub(pos)
     const relativePos = canvasPos.scale(1/canvas.width)
-    system.generateBoid(5,relativePos)
+    system.generateBoids(5,relativePos)
   }
   
   document.addEventListener("click", onClick);
