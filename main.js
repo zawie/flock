@@ -29,7 +29,7 @@ class Vector2 {
             return 0
         }
     }
-    random(){
+    randomdirection(){
         `Inputs: None
          Outputs: None
          Makes the vector a unit vector pointing in a random direction
@@ -37,6 +37,10 @@ class Vector2 {
         let theta = Math.random()*(2*Math.PI)
         this.x = Math.cos(theta)
         this.y = Math.sin(theta)
+    }
+    random(){
+        this.x = Math.random()
+        this.y = Math.random()
     }
     scale(L){
         this.x = this.x*L
@@ -54,17 +58,24 @@ class Boid {
         this.position = new Vector2()
         this.velocity = new Vector2()
         this.position.random()
-        this.velocity.random()
+        this.velocity.randomdirection()
         this.velocity.scale(.05)
     }
     step(){
         this.position.add(this.velocity)
     }
-    draw(canvas){
-        let context = canvas.getContext('2d');
-        if (context) {
-            context.fillRect(this.x*canvas.width,this.y*canvas.height,20,20);
-        }
+    draw(){
+        let canvas = document.getElementById('canvas')
+        var x = this.position.x*canvas.width
+        var y = this.position.y*canvas.height
+        var dx = (this.position.x + this.velocity.x)*canvas.width
+        var dy = (this.position.y + this.velocity.y)*canvas.height
+        var ctx = canvas.getContext("2d");
+        ctx.beginPath();
+        ctx.arc(x,y,10,0,2*Math.PI);
+        ctx.moveTo(x,y)
+        ctx.lineTo(dx,dy);
+        ctx.stroke();        
     }
 }
 
@@ -76,11 +87,13 @@ function GenerateBoids(count) {
     return boids
 }
 
-let canvas = document.getElementById('canvas');
-boids = GenerateBoids(1)
+boids = GenerateBoids(100)
 
-for (var i = 0; i < 5; i++) {
-    boids.forEach((boid)=>boid.step())
-    boids.forEach((boid)=>boid.draw(canvas))
-    setTimeout(2000)
-}
+window.addEventListener('click', function() {
+    canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+    for (var i = 0; i < boids.length; i++) {
+        boids[i].step()
+        boids[i].draw()
+    }
+    setTimeout(2000);
+})
