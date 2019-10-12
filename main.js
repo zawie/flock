@@ -81,10 +81,10 @@ class Boid {
     constructor(pos = new Vector2(Math.random(),Math.random()),isMarked = false){
         this.marked = isMarked
         //
-        this.radius = .02
+        this.radius = .025
         this.fieldOfView = 0.8 * 2*Math.PI
         this.allignTendency = .5
-        this.seperateTendency = .001
+        this.seperateTendency = .02
         this.coohesionTendency = .75
         //
         this.position = pos
@@ -206,7 +206,7 @@ function animate(boids) {
     boids.forEach(boid => boid.heartbeat(boids))
 }
 
-var Boids = GenerateBoids(100)
+var Boids = GenerateBoids(250)
 var current_interval = NaN
 function play() {
     current_interval = window.setInterval(() => {
