@@ -47,8 +47,10 @@ class Vector2 {
         this.y = this.y*L
     }
     add(vect){
-        this.x += vect.x
-        this.y += vect.y
+        return new Vector2(this.x + vect.x, this.y + vect.y)
+    }
+    sub(vect){
+        return new Vector2(this.x + vect.x, this.y + vect.y)
     }
 }
 
@@ -59,20 +61,31 @@ class Boid {
         this.velocity = new Vector2()
         this.position.random()
         this.velocity.randomdirection()
-        this.velocity.scale(.05)
+        this.velocity.scale(.001)
     }
     step(){
-        this.position.add(this.velocity)
+        this.position = this.position.add(this.velocity)
+        //Wrap around
+        if (this.position.y < 0){
+            this.position.y = 1
+        } else if(this.position.y > 1){
+            this.position.y = 0
+        }
+        if (this.position.x < 0){
+            this.position.x = 1
+        } else if(this.position.x > 1){
+            this.position.x = 0
+        }
     }
     draw(){
         let canvas = document.getElementById('canvas')
         var x = this.position.x*canvas.width
         var y = this.position.y*canvas.height
-        var dx = (this.position.x + this.velocity.x)*canvas.width
-        var dy = (this.position.y + this.velocity.y)*canvas.height
+        var dx = (this.position.x + this.velocity.x*10)*canvas.width
+        var dy = (this.position.y + this.velocity.y*10)*canvas.height
         var ctx = canvas.getContext("2d");
         ctx.beginPath();
-        ctx.arc(x,y,10,0,2*Math.PI);
+        ctx.arc(x,y,5,0,2*Math.PI);
         ctx.moveTo(x,y)
         ctx.lineTo(dx,dy);
         ctx.stroke();        
@@ -87,13 +100,14 @@ function GenerateBoids(count) {
     return boids
 }
 
-boids = GenerateBoids(100)
-
-window.addEventListener('click', function() {
+function animate(boids) {
     canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
-    for (var i = 0; i < boids.length; i++) {
-        boids[i].step()
-        boids[i].draw()
-    }
-    setTimeout(2000);
-})
+    //boids.forEach(boid => steer(boid,boids));
+    boids.forEach(boid => boid.step());
+    boids.forEach(boid => boid.draw());
+}
+
+boids = GenerateBoids(100)
+window.setInterval(() => {
+    animate(boids)
+}, 10);
