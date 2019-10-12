@@ -140,6 +140,7 @@ class Boid {
         var unitDelta = totalDelta.unit()
         var new_direction = this.direction.add(unitDelta)
         this.direction = new_direction.unit()
+        //Cohesion
     }
     heartbeat(boids){
         this.steer(boids)
@@ -161,7 +162,24 @@ function animate(boids) {
     boids.forEach(boid => boid.heartbeat(boids))
 }
 
+var current_interval = NaN
+function play() {
+    current_interval = window.setInterval(() => {
+        animate(boids)
+    }, 10);    
+}
+function toggle() {
+    if (current_interval) {
+        window.clearInterval(current_interval)
+        current_interval = NaN
+    } else {
+        current_interval = window.setInterval(() => {
+            animate(boids)
+        }, 10);  
+    }
+}
 boids = GenerateBoids(50)
-window.setInterval(() => {
-    animate(boids)
-}, 10);
+play()
+
+var playing = true
+window.addEventListener("click", toggle);
