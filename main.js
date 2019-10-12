@@ -78,16 +78,16 @@ class Vector2 {
 }
 
 class Boid {
-    constructor(x=Math.randoom(),y=Math.random(),isMarked = false){
+    constructor(pos = new Vector2(Math.random(),Math.random()),isMarked = false){
         this.marked = isMarked
         //
-        this.radius = .1
+        this.radius = .15
         this.fieldOfView = 0.8 * 2*Math.PI
         this.allignTendency = .05
         this.seperateTendency = .01
         this.coohesionTendency = .5
         //
-        this.position = new Vector2(x,y)
+        this.position = pos
         this.direction = new Vector2()
         this.speed = .001
         this.direction.randomdirection()
@@ -129,8 +129,8 @@ class Boid {
         let canvas = document.getElementById('canvas')
         var x = this.position.x*canvas.width
         var y = this.position.y*canvas.height
-        var dx = (this.position.x + this.direction.x*this.speed*20)*canvas.width
-        var dy = (this.position.y + this.direction.y*this.speed*20)*canvas.height
+        var dx = (this.position.x + this.direction.x*this.speed*5)*canvas.width
+        var dy = (this.position.y + this.direction.y*this.speed*5)*canvas.height
         var ctx = canvas.getContext("2d");
         ctx.beginPath();
         ctx.arc(x,y,5,0,2*Math.PI);
@@ -188,7 +188,8 @@ class Boid {
 function GenerateBoids(count) {
     var boids = []
     for (var i = 0; i < count; i++) {
-        boids.push(new Boid(Math.random(),Math.random(),i==0))
+        const pos = new Vector2(Math.random(),Math.random())
+        boids.push(new Boid(pos,i==0))
     }
     return boids
 }
@@ -207,10 +208,27 @@ function play() {
 }
 play()
 
+function elePos(ele) { // jcgregorio
+    var dx = ele.offsetLeft;
+    var dy = ele.offsetTop;
+    while (ele.offsetParent) {
+      ele = ele.offsetParent;
+      dx += ele.offsetLeft;
+      dy += ele.offsetTop;
+    }
+    return new Vector2(dx,dy)
+  }
+
 function printMousePos(event) {
-    const x = event.screenX/canvas.width
-    const y = event.screenY/canvas.height
-    var boid = new Boid(x,y,false)
+    const pos = elePos(canvas)
+    console.log(pos)
+    const click = new Vector2(event.clientX,event.clientY)
+    console.log(click)
+    const canvasPos = click.sub(pos)
+    console.log(canvasPos)
+    const relativePos = canvasPos.scale(1/canvas.width)
+    console.log(relativePos)
+    var boid = new Boid(relativePos,false)
     Boids.push(boid)
   }
   
