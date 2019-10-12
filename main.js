@@ -50,29 +50,33 @@ class Vector2 {
         return new Vector2(this.x + vect.x, this.y + vect.y)
     }
     sub(vect){
-        return new Vector2(this.x + vect.x, this.y + vect.y)
+        return new Vector2(this.x - vect.x, this.y - vect.y)
     }
 }
-
 
 class Boid {
     constructor(isMarked = false){
         this.marked = isMarked
+        //
+        this.radius = .1
+        //
         this.position = new Vector2()
         this.velocity = new Vector2()
         this.position.random()
         this.velocity.randomdirection()
         this.velocity.scale(.001)
     }
-    steer(boids){
+    getVisible(boids){
+        var nearby = new Array();
         boids.forEach(boid => {
-            if (boid != self) {
-                //const distance = boid.position.sub(self.position).magnitude()
-                //if (distance < .1) {
-                    
-                //}
+            if (boid != this) {
+                const distance = boid.position.sub(this.position).magnitude()
+                if (this.marked && distance < this.radius ) {
+                    nearby.push(boid)
+                }
             }
         })
+        return nearby
     }
     step(){
         this.position = this.position.add(this.velocity)
@@ -102,10 +106,22 @@ class Boid {
         ctx.closePath();
         ctx.stroke();
         if (this.marked) {
-            console.log('Marked!')
             ctx.fillStyle = "#3370d4"; //blue
             ctx.fill();
+            // radius picture
+            ctx.beginPath();
+            ctx.arc(x,y,canvas.height*this.radius,0,2*Math.PI);
+            ctx.moveTo(x,y)
+            ctx.lineTo(dx,dy);
+            ctx.closePath();
+            ctx.stroke();
         }
+    }
+    steer(boids){
+        const nearby = this.getVisible(boids)
+        nearby.forEach(boid => {
+
+        })
     }
     heartbeat(boids){
         this.steer(boids)
