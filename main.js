@@ -80,7 +80,7 @@ class Boid {
         boids.forEach(boid => {
             if (boid != this) {
                 const distance = boid.position.sub(this.position).magnitude()
-                if (this.marked && distance < this.radius ) {
+                if (distance < this.radius ) {
                     nearby.push(boid)
                 }
             }
@@ -134,20 +134,12 @@ class Boid {
         nearby.forEach(boid => {
             const diff = this.position.sub(boid.position);
             const delta = diff.scale(1/diff.magnitude())
-            if (this.marked) {
-                console.log(delta)
-            }
             totalDelta = totalDelta.add(delta)
 
         })
         var unitDelta = totalDelta.unit()
-        if (this.marked) {
-            console.log(this.position)
-        }
         var new_direction = this.direction.add(unitDelta)
-        if (this.marked) {
-            this.direction = new_direction.unit()
-        }
+        this.direction = new_direction.unit()
     }
     heartbeat(boids){
         this.steer(boids)
@@ -169,7 +161,7 @@ function animate(boids) {
     boids.forEach(boid => boid.heartbeat(boids))
 }
 
-boids = GenerateBoids(25)
+boids = GenerateBoids(50)
 window.setInterval(() => {
     animate(boids)
 }, 10);
