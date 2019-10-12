@@ -17,7 +17,11 @@ class Vector2 {
          Outputs: A floating point number
          Returns a unit vector with the same direction as the called vector`
         let size = this.magnitude()
-        return new Vector2(this.x/size,this.y/size)
+        if (size > 0) {
+            return this.scale(1/this.magnitude())
+        } else {
+            return this
+        }
     }
     angle(){
         `Inputs: None
@@ -44,6 +48,9 @@ class Vector2 {
     }
     scale(L){
         return new Vector2(this.x*L,this.y*L)
+    }
+    inverse(){
+        return this.scale(-1)
     }
     add(vect){
         return new Vector2(this.x + vect.x, this.y + vect.y)
@@ -118,21 +125,29 @@ class Boid {
             ctx.lineTo(dx,dy);
             ctx.closePath();
             ctx.stroke();
-            console.log(this.position,this.direction);
         }
     }
     steer(boids){
         const nearby = this.getVisible(boids)
-        var totalDelta = new Vector2()
+        //Seperation
+        var totalDelta = new Vector2(0,0)
         nearby.forEach(boid => {
-            //Seperation
             const diff = this.position.sub(boid.position);
-            const delta = diff.scale(diff.magnitude());
-            //totalDelta = totalDelta.add(delta)
-            //Alignment
-            //Cohesion
+            const delta = diff.scale(1/diff.magnitude())
+            if (this.marked) {
+                console.log(delta)
+            }
+            totalDelta = totalDelta.add(delta)
+
         })
-        //this.direction = totalDelta.unit()
+        var unitDelta = totalDelta.unit()
+        if (this.marked) {
+            console.log(this.position)
+        }
+        var new_direction = this.direction.add(unitDelta)
+        if (this.marked) {
+            this.direction = new_direction.unit()
+        }
     }
     heartbeat(boids){
         this.steer(boids)
@@ -154,7 +169,7 @@ function animate(boids) {
     boids.forEach(boid => boid.heartbeat(boids))
 }
 
-boids = GenerateBoids(5)
+boids = GenerateBoids(25)
 window.setInterval(() => {
     animate(boids)
 }, 10);
