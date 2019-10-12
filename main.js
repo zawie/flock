@@ -81,11 +81,11 @@ class Boid {
     constructor(pos = new Vector2(Math.random(),Math.random()),isMarked = false){
         this.marked = isMarked
         //
-        this.radius = .15
+        this.radius = .02
         this.fieldOfView = 0.8 * 2*Math.PI
-        this.allignTendency = .05
-        this.seperateTendency = .01
-        this.coohesionTendency = .5
+        this.allignTendency = .5
+        this.seperateTendency = .001
+        this.coohesionTendency = .75
         //
         this.position = pos
         this.direction = new Vector2()
@@ -141,6 +141,12 @@ class Boid {
         if (this.marked) {
             ctx.fillStyle = "#3370d4"; //blue
             ctx.fill();
+            ctx.beginPath();
+            ctx.arc(x,y,this.radius*canvas.height,0,2*Math.PI);
+            ctx.moveTo(x,y)
+            ctx.lineTo(dx,dy);
+            ctx.closePath();
+            ctx.stroke();
         }
     }
     cohesion(nearby){
@@ -159,10 +165,11 @@ class Boid {
         var seperationDelta = new Vector2(0,0)
         nearby.forEach(boid => {
             const diff = this.position.sub(boid.position)
-            const delta = diff.unit().scale(.1/diff.magnitude())
+            const distance = diff.magnitude()/this.radius
+            const delta = diff.unit().scale(this.seperateTendency/distance)
             seperationDelta = seperationDelta.add(delta)
         })
-        this.direction = this.direction.add(seperationDelta.scale(this.seperateTendency))
+        this.direction = this.direction.add(seperationDelta.scale(1/nearby.length))
     }
     align(nearby) {
         // Allignment
@@ -199,7 +206,7 @@ function animate(boids) {
     boids.forEach(boid => boid.heartbeat(boids))
 }
 
-var Boids = GenerateBoids(1)
+var Boids = GenerateBoids(100)
 var current_interval = NaN
 function play() {
     current_interval = window.setInterval(() => {
