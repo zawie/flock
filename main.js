@@ -1,21 +1,18 @@
 class Vector2 {
     constructor (x = 0,y = 0) {
-        `Inputs: Two integers: x,y that will be the constructs of the vector
-         Outputs: None
-         Returns a unit vector with the same direction as the called vector`
+        `Inputs: Two numbers, x,y
+         Creates a vector <x,y>`
         this.x = x
         this.y = y
     }
     magnitude(){
-        `Inputs: None
-         Outputs: A floating point number
-         Returns the length of the vector object`
+        `Outputs: A floating point number 
+         Returns the length of the vector`
         return Math.pow(Math.pow(this.x,2) + Math.pow(this.y,2),1/2)
     }
     unit(){
-        `Inputs: None
-         Outputs: A floating point number
-         Returns a unit vector with the same direction as the called vector`
+        `Output: A vector object
+        Returns a unit vector with the same direction as the called vector`
         let size = this.magnitude()
         if (size > 0) {
             return this.scale(1/this.magnitude())
@@ -24,12 +21,15 @@ class Vector2 {
         }
     }
     dot(vect){
+        `Input: A vector
+         Output: A floating point number
+         Returns the dot product between the inputed vector`
         return this.x*vect.x + this.y*vect.y
     }
     angle(vect){
-        `Inputs: None
+        `Inputs: A vector
          Outputs: A floating point number
-         Returns the radian angles from x-axis`
+         Returns the angular difference between the inputted vactor`
         if (vect) {
             const numerator = this.dot(vect)
             const denominator = this.magnitude()*vect.magnitude()
@@ -42,38 +42,49 @@ class Vector2 {
             return Math.acos(this.unit().x)
         }
     }
-    randomdirection(){
-        `Inputs: None
-         Outputs: None
-         Makes the vector a unit vector pointing in a random direction
-        `
-        let theta = Math.random()*(2*Math.PI)
-        this.x = Math.cos(theta)
-        this.y = Math.sin(theta)
-    }
-
     average(vect){
+        `Inputs: A vector
+         Outputs: A vector
+         Returns the average vector between this and input`
         return this.add(vect).scale(1/2)
     }
-
-    random(){
-        this.x = Math.random()
-        this.y = Math.random()
-    }
     scale(L){
+        `Inputs: A floating point number
+         Outputs: A vector
+         Returns a vector in the same direction but scaled by L`
         return new Vector2(this.x*L,this.y*L)
     }
     inverse(){
+        `Outputs: A vector
+         Returns an identical vector in the opposite direction`
         return this.scale(-1)
     }
     add(vect){
+        `Inputs: A vector
+         Outputs: A vector
+         Returns the addition of two vectors`
         return new Vector2(this.x + vect.x, this.y + vect.y)
     }
     sub(vect){
+        `Inputs: A vector
+         Outputs: A vector
+         Returns the difference of two vectors`
         return new Vector2(this.x - vect.x, this.y - vect.y)
     }
     clone(){
+        `Returns a copy of the vector object`
         return new Vector2(this.x,this.y)
+    }
+    random(){
+        `Randomly assigns the x and y coordinates a number between 0 and 1`
+        this.x = Math.random()
+        this.y = Math.random()
+    }
+    randomdirection(){
+        `Makes the vector a unit vector pointing in a random direction`
+        let theta = Math.random()*(2*Math.PI)
+        this.x = Math.cos(theta)
+        this.y = Math.sin(theta)
     }
 }
 
