@@ -221,13 +221,9 @@ function elePos(ele) { // jcgregorio
 
 function printMousePos(event) {
     const pos = elePos(canvas)
-    console.log(pos)
     const click = new Vector2(event.clientX,event.clientY)
-    console.log(click)
     const canvasPos = click.sub(pos)
-    console.log(canvasPos)
     const relativePos = canvasPos.scale(1/canvas.width)
-    console.log(relativePos)
     var boid = new Boid(relativePos,false)
     Boids.push(boid)
   }
