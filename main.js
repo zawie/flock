@@ -167,10 +167,10 @@ class Boid {
         nearby.forEach(boid => {
             const diff = this.position.sub(boid.position)
             const distance = diff.magnitude()/this.radius
-            const delta = diff.unit().scale(this.seperateTendency/Math.pow(distance,2))
+            const delta = diff.unit().scale(1/Math.pow(distance,2))
             seperationDelta = seperationDelta.add(delta)
         })
-        this.direction = this.direction.add(seperationDelta.scale(1/nearby.length))
+        this.direction = this.direction.add(seperationDelta.scale(this.seperateTendency))
     }
     align(nearby) {
         // Allignment
