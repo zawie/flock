@@ -139,16 +139,6 @@ class Boid {
         if (this.marked) {
             ctx.fillStyle = "#3370d4"; //blue
             ctx.fill();
-            // radius picture
-            ctx.beginPath();
-            var theta = this.velocity.angle()
-            console.log(theta)
-            const halfView = this.fieldOfView/2
-            ctx.arc(x,y,canvas.height*this.radius, theta+Math.PI + halfView, theta+Math.PI - halfView, true);
-            ctx.moveTo(x,y)
-            ctx.lineTo(dx,dy);
-            ctx.closePath();
-            ctx.stroke();
         }
     }
     steer(nearby){
@@ -163,7 +153,7 @@ class Boid {
         // Allignment
         var total_angle = 0
         nearby.forEach(boid => {
-            total_angle += boid.velocity.angle()
+            total_angle += boid.direction.angle()
         })
         const theta = total_angle/nearby.length
         let allignmentDelta = new Vector2 (Math.sin(theta),Math.cos(theta))
@@ -216,7 +206,7 @@ function toggle() {
         play()
     }
 }
-boids = GenerateBoids(1)
+boids = GenerateBoids(10)
 play()
 
 var playing = true
