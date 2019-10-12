@@ -43,14 +43,16 @@ class Vector2 {
         this.y = Math.random()
     }
     scale(L){
-        this.x = this.x*L
-        this.y = this.y*L
+        return new Vector2(this.x*L,this.y*L)
     }
     add(vect){
         return new Vector2(this.x + vect.x, this.y + vect.y)
     }
     sub(vect){
         return new Vector2(this.x - vect.x, this.y - vect.y)
+    }
+    clone(){
+        return new Vector2(this.x,this.y)
     }
 }
 
@@ -61,10 +63,10 @@ class Boid {
         this.radius = .1
         //
         this.position = new Vector2()
-        this.velocity = new Vector2()
+        this.direction = new Vector2()
+        this.speed = .0015
         this.position.random()
-        this.velocity.randomdirection()
-        this.velocity.scale(.001)
+        this.direction.randomdirection()
     }
     getVisible(boids){
         var nearby = new Array();
@@ -79,7 +81,8 @@ class Boid {
         return nearby
     }
     step(){
-        this.position = this.position.add(this.velocity)
+        var velocity = this.direction.scale(this.speed)
+        this.position = this.position.add(velocity)
         //Wrap around
         if (this.position.y < 0){
             this.position.y = 1
@@ -96,8 +99,8 @@ class Boid {
         let canvas = document.getElementById('canvas')
         var x = this.position.x*canvas.width
         var y = this.position.y*canvas.height
-        var dx = (this.position.x + this.velocity.x*10)*canvas.width
-        var dy = (this.position.y + this.velocity.y*10)*canvas.height
+        var dx = (this.position.x + this.direction.x*10*this.speed)*canvas.width
+        var dy = (this.position.y + this.direction.y*10*this.speed)*canvas.height
         var ctx = canvas.getContext("2d");
         ctx.beginPath();
         ctx.arc(x,y,5,0,2*Math.PI);
@@ -115,13 +118,21 @@ class Boid {
             ctx.lineTo(dx,dy);
             ctx.closePath();
             ctx.stroke();
+            console.log(this.position,this.direction);
         }
     }
     steer(boids){
         const nearby = this.getVisible(boids)
+        var totalDelta = new Vector2()
         nearby.forEach(boid => {
-
+            //Seperation
+            const diff = this.position.sub(boid.position);
+            const delta = diff.scale(diff.magnitude());
+            //totalDelta = totalDelta.add(delta)
+            //Alignment
+            //Cohesion
         })
+        //this.direction = totalDelta.unit()
     }
     heartbeat(boids){
         this.steer(boids)
@@ -143,7 +154,7 @@ function animate(boids) {
     boids.forEach(boid => boid.heartbeat(boids))
 }
 
-boids = GenerateBoids(10)
+boids = GenerateBoids(5)
 window.setInterval(() => {
     animate(boids)
 }, 10);
