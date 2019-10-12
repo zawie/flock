@@ -23,14 +23,19 @@ class Vector2 {
             return this
         }
     }
-    angle(){
+    dot(vect){
+        return this.x*vect.x + this.y*vect.y
+    }
+    angle(vect = new Vector2(1,0)){
         `Inputs: None
          Outputs: A floating point number
          Returns the radian angles from x-axis`
-        if (this.magnitude() > 0) {
-            return Math.acos(this.x/this.magnitude())
-        } else {
+        const numerator = this.dot(vect)
+        const denominator = this.magnitude()*vect.magnitude()
+        if (denominator == 0) {
             return 0
+        } else {
+            return Math.acos(numerator/denominator)
         }
     }
     randomdirection(){
@@ -72,29 +77,42 @@ class Boid {
     constructor(isMarked = false){
         this.marked = isMarked
         //
-        this.radius = .05
+        this.radius = .1
+        this.fieldOfView = 0.25 * 2*Math.PI
         //
         this.position = new Vector2()
-        this.direction = new Vector2()
-        this.speed = .0015
+        this.velocity = new Vector2()
+        this.acceleration = .002
+        this.maxSpeed = .0025
         this.position.random()
-        this.direction.randomdirection()
+        this.velocity.randomdirection()
+        this.tendency = this.velocity
     }
     getVisible(boids){
         var nearby = new Array();
         boids.forEach(boid => {
             if (boid != this) {
-                const distance = boid.position.sub(this.position).magnitude()
-                if (distance < this.radius ) {
-                    nearby.push(boid)
+                const delta = boid.position.sub(this.position)
+                if (delta.magnitude() < this.radius ) {
+                    var theta = delta.angle(this.velocity)
+                    if (this.marked) {
+                        //console.log(180*theta/Math.PI,180*this.fieldOfView/2/Math.PI)
+                    }
+                    if (theta < this.fieldOfView/2) {
+                        nearby.push(boid)
+                    }
                 }
             }
         })
         return nearby
     }
     step(){
-        var velocity = this.direction.scale(this.speed)
-        this.position = this.position.add(velocity)
+        var desired = this.velocity.sub(this.tendency).unit()
+        this.velocity = this.velocity.add(desired.scale(this.acceleration))
+        if (this.velocity.magnitude() > this.maxSpeed) {
+            this.velocity = this.velocity.unit().scale(this.maxSpeed)
+        }
+        this.position = this.position.add(this.velocity)
         //Wrap around
         if (this.position.y < 0){
             this.position.y = 1
@@ -111,8 +129,8 @@ class Boid {
         let canvas = document.getElementById('canvas')
         var x = this.position.x*canvas.width
         var y = this.position.y*canvas.height
-        var dx = (this.position.x + this.direction.x*10*this.speed)*canvas.width
-        var dy = (this.position.y + this.direction.y*10*this.speed)*canvas.height
+        var dx = (this.position.x + this.velocity.x*5)*canvas.width
+        var dy = (this.position.y + this.velocity.y*5)*canvas.height
         var ctx = canvas.getContext("2d");
         ctx.beginPath();
         ctx.arc(x,y,5,0,2*Math.PI);
@@ -125,7 +143,9 @@ class Boid {
             ctx.fill();
             // radius picture
             ctx.beginPath();
-            ctx.arc(x,y,canvas.height*this.radius,0,2*Math.PI);
+            var theta = this.velocity.angle()
+            const halfView = this.fieldOfView/2
+            ctx.arc(x,y,canvas.height*this.radius,theta-halfView,theta+halfView);
             ctx.moveTo(x,y)
             ctx.lineTo(dx,dy);
             ctx.closePath();
@@ -137,14 +157,14 @@ class Boid {
         var pushDeltas = new Vector2(0,0)
         nearby.forEach(boid => {
             const diff = this.position.sub(boid.position)
-            const delta = diff.scale(1/diff.magnitude())
+            const delta = diff.unit().scale(-1/diff.magnitude())
             pushDeltas = pushDeltas.add(delta)
         })
         let seperationDelta = pushDeltas.scale(1/nearby.length)
         // Allignment
         var total_angle = 0
         nearby.forEach(boid => {
-            total_angle += boid.direction.angle()
+            total_angle += boid.velocity.angle()
         })
         const theta = total_angle/nearby.length
         let allignmentDelta = new Vector2 (Math.sin(theta),Math.cos(theta))
@@ -157,8 +177,8 @@ class Boid {
         const average_position = total_position.scale(1/nearby.length)
         var cohesionDelta = this.position.sub(average_position).unit()
         // Change direction
-        const totalDelta = cohesionDelta.add(seperationDelta).add(allignmentDelta)
-        this.direction = this.direction.average(totalDelta).unit()
+        const totalDelta = seperationDelta.average(cohesionDelta).average(allignmentDelta)
+        this.tendency = totalDelta.unit()
     }
     heartbeat(boids){
         const nearby = this.getVisible(boids)
@@ -194,12 +214,10 @@ function toggle() {
         window.clearInterval(current_interval)
         current_interval = NaN
     } else {
-        current_interval = window.setInterval(() => {
-            animate(boids)
-        }, 10);  
+        play()
     }
 }
-boids = GenerateBoids(100)
+boids = GenerateBoids(15)
 play()
 
 var playing = true
