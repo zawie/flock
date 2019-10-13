@@ -103,9 +103,11 @@ class Boid {
         this.chaosTendency = .1
         //
         this.position = pos
-        this.direction = new Vector2()
-        this.speed = .0005
-        this.direction.randomdirection()
+        this.velocity = new Vector2()
+        this.velocity.randomdirection()
+        this.maxSpeed = .001
+        this.maxForce = .00005
+        this.mass = 1
     }
     getVisible(boids){
         var nearby = new Array();
@@ -122,19 +124,12 @@ class Boid {
         })
         return nearby
     }
-    step(){
-        var noise = new Vector2()
-        noise.randomdirection()
-        this.direction = this.direction.add(noise.scale(this.chaosTendency)).unit()
-        var velocity = this.direction.scale(this.speed)
-        this.position = this.position.add(velocity)
-    }
     draw(){
         let canvas = this.enviornment.canvas
         var x = this.position.x*canvas.width
         var y = this.position.y*canvas.height
-        var dx = (this.position.x + this.direction.x*this.speed*10)*canvas.width
-        var dy = (this.position.y + this.direction.y*this.speed*10)*canvas.height
+        var dx = (this.position.x + this.velocity.x*10)*canvas.width
+        var dy = (this.position.y + this.velocity.y*10)*canvas.height
         var ctx = canvas.getContext("2d");
         ctx.beginPath();
         ctx.arc(x,y,5,0,2*Math.PI);
@@ -155,45 +150,69 @@ class Boid {
     }
     cohesion(nearby){
         // Cohesion
-        var cohesionDelta = new Vector2()
         var total_position = new Vector2()
         nearby.forEach(boid => {
             total_position = total_position.add(boid.position)
         })
         const average_position = total_position.scale(1/nearby.length)
-        var delta = average_position.sub(this.position).unit()
-        this.direction = this.direction.add(delta.scale(this.coohesionTendency))
+        const force = average_position.sub(this.position).scale(nearby.length)
+        return force
     }
     seperate(nearby){
         //Seperation
-        var seperationDelta = new Vector2(0,0)
+        var force = new Vector2()
         nearby.forEach(boid => {
             const diff = this.position.sub(boid.position)
             const distance = diff.magnitude()/this.radius
-            const delta = diff.unit().scale(1/Math.pow(distance,2))
-            seperationDelta = seperationDelta.add(delta)
+            const delta = diff.unit().scale(1/Math.pow(distance,3))
+            force = force.add(delta)
         })
-        this.direction = this.direction.add(seperationDelta.scale(this.seperateTendency))
+        return force
     }
     align(nearby) {
         // Allignment
         var total_angle = 0
         nearby.forEach(boid => {
-            total_angle += boid.direction.angle()
+            total_angle += boid.velocity.angle()
         })
         const theta = total_angle/nearby.length
-        let delta = new Vector2 (Math.sin(theta),Math.cos(theta))
-        this.direction = this.direction.add(delta.scale(this.allignTendency))
+        const delta = new Vector2 (Math.sin(theta),Math.cos(theta))
+        const force = delta.scale(nearby.length)
+        return force
+    }
+    noise(){
+        const theta = this.velocity.angle()
+        const randAngle = (Math.random()-.5)*Math.PI
+        const phi = theta + randAngle
+        const force = new Vector2(Math.cos(phi),Math.sin(phi))
+        return force
     }
     heartbeat(){
         const nearby = this.getVisible(this.enviornment.population)
+        var netForce = this.noise()
         if (nearby.length > 0) {
-            this.align(nearby)
-            this.seperate(nearby)
-            this.cohesion(nearby)
+            const steerAlign = this.align(nearby)
+            const steerSeperate = this.seperate(nearby)
+            const steerCohesion = this.cohesion(nearby)
+            for (let force of [steerAlign,steerSeperate]){
+                netForce = netForce.add(force)
+            }
         }
-        this.step()
-        this.draw()      
+
+        if (netForce.magnitude() > this.maxForce) {
+            netForce = netForce.unit().scale(this.maxForce)
+        }
+        var acceleration = netForce.scale(1/this.mass)
+        this.velocity = this.velocity.add(acceleration)
+        if (this.velocity.magnitude() > this.maxSpeed) {
+            this.velocity = this.velocity.unit().scale(this.maxSpeed)
+        }
+        if (this.marked) {
+            //console.log(netForce)
+        }
+        this.position = this.position.add(this.velocity)
+
+        this.draw()
     }
 }
 
@@ -240,7 +259,7 @@ class Enviornment {
         this.playing = true
         this.current_interval = window.setInterval(() => {
             this.step()
-        }, 1); 
+        }, 0.5); 
     }
     pause(){
         this.playing = false
@@ -257,7 +276,7 @@ class Enviornment {
 
 let canvas = document.getElementById('canvas')
 let system = new Enviornment(canvas)
-system.populate(1)
+system.populate(10)
 system.play()
 
 //Mouse Stuff
