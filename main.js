@@ -185,36 +185,6 @@ class Boid {
         let delta = new Vector2 (Math.sin(theta),Math.cos(theta))
         this.direction = this.direction.add(delta.scale(this.allignTendency))
     }
-    avoid() {
-        const obstacles =  this.enviornment.obstacles
-        obstacles.forEach(obstacle => {
-            const q = obstacle[0]
-            const q2 = obstacle[1]
-            const p = this.position
-            const u = q.sub(q2)
-            const v = this.direction
-            if (this.direction.cross(u) != 0){
-                const m1 = v.y/v.x
-                const m2 = u.y/u.x 
-                const x = (p.x*m1 - q.x*m2 + q.y - p.y)/(m1-m2)
-                const y = p.y + (x-p.x)*m1
-                const hit = new Vector2(x,y)
-                const diff = hit.sub(p)
-                if (diff.magnitude() <= this.radius){
-                    //angular avoidance
-                    const theta = v.angle(u)
-                    const phi = Math.PI - 2*theta
-                    const angledelta = new Vector2(Math.cos(phi),Math.sin(phi))
-                    //point avoidence
-                    const diff = p.sub(hit)
-                    const distance = diff.magnitude()/this.radius
-                    const pointdelta = diff.unit().scale(1/Math.pow(distance,2))
-                    const delta = pointdelta.average(angledelta)
-                    this.direction = this.direction.add(delta).unit()
-                }
-            }
-        })
-    }
     heartbeat(){
         const nearby = this.getVisible(this.enviornment.population)
         if (nearby.length > 0) {
@@ -222,7 +192,6 @@ class Boid {
             this.seperate(nearby)
             this.cohesion(nearby)
         }
-        this.avoid()
         this.step()
         this.draw()      
     }
@@ -233,7 +202,6 @@ class Enviornment {
     constructor(canvas) {
         this.population = new Array();
         this.canvas = canvas
-        this.obstacles = [[new Vector2(0,1), new Vector2(1,1)], [new Vector2(0,0), new Vector2(1,0)], [new Vector2(0,0), new Vector2(0,1.01)], [new Vector2(.99,0), new Vector2(1,1)]]
         this.playing = false
     }
     generateBoids(count = 1, origin = new Vector2(Math.random(),Math.random())){
