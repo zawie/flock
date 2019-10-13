@@ -26,6 +26,9 @@ class Vector2 {
          Returns the dot product between the inputed vector`
         return this.x*vect.x + this.y*vect.y
     }
+    cross(that){
+        return this.x*that.y + this.y*that.x
+    }
     angle(vect){
         `Inputs: A vector
          Outputs: A floating point number
@@ -92,11 +95,11 @@ class Boid {
         this.marked = isMarked
         this.enviornment = enviornment
         //
-        this.radius = .025
+        this.radius = .05
         this.fieldOfView = 0.8 * 2*Math.PI
-        this.allignTendency = .75
-        this.seperateTendency = .5
-        this.coohesionTendency = .75
+        this.allignTendency = .4
+        this.seperateTendency = .1
+        this.coohesionTendency = .5
         this.chaosTendency = .1
         //
         this.position = pos
@@ -182,12 +185,44 @@ class Boid {
         let delta = new Vector2 (Math.sin(theta),Math.cos(theta))
         this.direction = this.direction.add(delta.scale(this.allignTendency))
     }
+    avoid() {
+        const obstacles =  this.enviornment.obstacles
+        obstacles.forEach(obstacle => {
+            const q = obstacle[0]
+            const q2 = obstacle[1]
+            const p = this.position
+            const u = q.sub(q2)
+            const v = this.direction
+            if (this.direction.cross(u) != 0){
+                const m1 = v.y/v.x
+                const m2 = u.y/u.x 
+                const x = (p.x*m1 - q.x*m2 + q.y - p.y)/(m1-m2)
+                const y = p.y + (x-p.x)*m1
+                const hit = new Vector2(x,y)
+                const diff = hit.sub(p)
+                if (diff.magnitude() <= this.radius){
+                    //angular avoidance
+                    const theta = v.angle(u)
+                    const phi = Math.PI - 2*theta
+                    const angledelta = new Vector2(Math.cos(phi),Math.sin(phi))
+                    //point avoidence
+                    const diff = p.sub(hit)
+                    const distance = diff.magnitude()/this.radius
+                    const pointdelta = diff.unit().scale(1/Math.pow(distance,2))
+                    const delta = pointdelta.average(angledelta)
+                    this.direction = this.direction.add(delta).unit()
+                }
+            }
+        })
+    }
     heartbeat(){
         const nearby = this.getVisible(this.enviornment.population)
         if (nearby.length > 0) {
             this.align(nearby)
             this.seperate(nearby)
+            this.cohesion(nearby)
         }
+        this.avoid()
         this.step()
         this.draw()      
     }
@@ -195,20 +230,14 @@ class Boid {
 
 
 class Enviornment {
-    constructor(canvas,wrapAround = false) {
+    constructor(canvas) {
         this.population = new Array();
         this.canvas = canvas
-        this.wrapAround = wrapAround
-    }
-    addRectangle(){
-
-    }
-    addCircle(){
-
+        this.obstacles = [[new Vector2(0,1), new Vector2(1,1)], [new Vector2(0,0), new Vector2(1,0)], [new Vector2(0,0), new Vector2(0,1.01)], [new Vector2(.99,0), new Vector2(1,1)]]
+        this.playing = false
     }
     generateBoids(count = 1, origin = new Vector2(Math.random(),Math.random())){
         for (var i = 0; i < count; i++) {
-            console.log("ag")
             var pos = origin
             if (i > 0) {
                 var direction = new Vector2();
@@ -227,7 +256,6 @@ class Enviornment {
         this.canvas.getContext("2d").clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.population.forEach(boid => boid.heartbeat())
         this.population.forEach(boid=>{
-            //Wrap-around
             if (boid.position.y < 0){
                 boid.position.y = 1
             } else if(boid.position.y > 1){
@@ -241,18 +269,27 @@ class Enviornment {
         })
     }
     play(){
+        this.playing = true
         this.current_interval = window.setInterval(() => {
             this.step()
         }, 1); 
     }
     pause(){
-        window.stopInterval(this.current_interval)
+        this.playing = false
+        window.clearInterval(this.current_interval)
+    }
+    toggle(){
+        if (this.playing) {
+            this.pause()
+        } else {
+            this.play()
+        }
     }
 }
 
 let canvas = document.getElementById('canvas')
-let system = new Enviornment(canvas,true)
-system.populate(100)
+let system = new Enviornment(canvas)
+system.populate(1)
 system.play()
 
 //Mouse Stuff
@@ -275,3 +312,8 @@ function onClick(event) {
   }
   
   document.addEventListener("click", onClick);
+  document.body.onkeyup = function(e){
+    if(e.keyCode == 32){
+        system.toggle()
+    }
+}
