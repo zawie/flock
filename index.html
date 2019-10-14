@@ -7,8 +7,28 @@
 </head>
 
 <body>
-<h1>Boids</h1>
-<canvas id="canvas" width="1500" height="1500"></canvas>
+
+<h1 id="title">Boids</h1>
+
+<div class="sidenav">
+    <h4> Population count </h4>
+    <input type="range" min="1" max="10" value="10" class="slider" id="tabSlider">
+    <h4> Steering behavior </h4>
+    <button id="toggle align"> Disable Align </button>
+    <button id="toggle seperate"> Disable Seperate </button>
+    <button id="toggle cohesion"> Disable Cohesion </button>
+    <h4> Toggle animation </h4>
+    <button id="toggle interval"> Pause </button>
+    <p> Click to add barriers </p>
+  </div>
+
+  <div class="topbar">
+    <h1 id="title">Boids</h1>
+  </div>
+  
+<canvas id="canvas" width="1000" height="1000"></canvas>
+
+
 <script src="main.js"></script>
 </body>
 </html>
