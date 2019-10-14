@@ -190,10 +190,15 @@ class Boid {
         const nearby = this.enviornment.getNearBoids(this)
         var forces = [this.noise(),this.avoidDots()]
         if (nearby.length > 0) {
-            forces.push(this.align(nearby))
-            forces.push(this.seperate(nearby))
-            forces.push(this.cohesion(nearby))
-            forces.push(this.avoidDots())
+            if (this.enviornment.alignEnabled){
+                forces.push(this.align(nearby))
+            }
+            if (this.enviornment.seperateEnabled){
+                forces.push(this.seperate(nearby))
+            }
+            if (this.enviornment.cohesionEnabled){
+                forces.push(this.cohesion(nearby))
+            }
         }
         var netForce = new Vector2()
         for (let force of forces){
@@ -232,6 +237,9 @@ class Enviornment {
         this.canvas = canvas
         this.playing = false
         this.dots = []
+        this.seperateEnabled = true
+        this.alignEnabled = true
+        this.cohesionEnabled = true
     }
     generateBoids(count = 1, pos = new Vector2(Math.random(),Math.random())){
         for (var i = 0; i < count; i++) {
@@ -331,7 +339,17 @@ document.addEventListener('DOMContentLoaded', (event) => {
         system.toggle()
         playbutton.innerHTML = system.playing && "Pause" || "Play"
     }
-    
+
+    const steers = ['alignEnabled','seperateEnabled','cohesionEnabled']
+    for (let bool of steers){
+        const button = document.getElementById(bool)
+        button.onclick = ()=>{
+            console.log("ah") 
+            system[bool] = !system[bool]
+            button.style.color = system[bool] && "rgb(144, 84, 187,1)" || "rgb(144, 84, 187,.25)"
+        }
+    }
+
     const slider = document.getElementById("slider")
     slider.oninput = ()=>{
         const new_pop = slider.value
