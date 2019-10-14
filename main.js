@@ -91,7 +91,7 @@ class Vector2 {
     }
 }
 class Boid {
-    constructor(pos = new Vector2(), enviornment, isMarked = false){
+    constructor(enviornment, pos = new Vector2(), isMarked = false){
         this.marked = isMarked
         this.enviornment = enviornment
         //
@@ -156,6 +156,18 @@ class Boid {
         })
         return force
     }
+    avoidDots(){
+        //Seperation
+        var force = new Vector2()
+        var dots = this.enviornment.getNearDots(this)
+        dots.forEach(dot => {
+            const diff = this.position.sub(dot.position)
+            const distance = diff.magnitude()/this.radius
+            const delta = diff.scale(1/Math.pow(distance,4))
+            force = force.add(delta)
+        })
+        return force
+    }
     align(nearby) {
         // Allignment
         var total_angle = 0
@@ -176,20 +188,18 @@ class Boid {
     }
     heartbeat(){
         const nearby = this.enviornment.getNearBoids(this)
-        var netForce = this.noise()
+        var forces = [this.noise(),this.avoidDots()]
         if (nearby.length > 0) {
-            const steerAlign = this.align(nearby)
-            const steerSeperate = this.seperate(nearby)
-            const steerCohesion = this.cohesion(nearby)
-            const forces = [steerAlign,steerCohesion,steerSeperate]
-            for (let force of forces){
-                netForce = netForce.add(force)
-            }
-            netForce.scale(1/(forces.length+1))
+            forces.push(this.align(nearby))
+            forces.push(this.seperate(nearby))
+            forces.push(this.cohesion(nearby))
+            forces.push(this.avoidDots())
         }
-        if (this.marked) {
-            //console.log(netForce)
+        var netForce = new Vector2()
+        for (let force of forces){
+            netForce = netForce.add(force)
         }
+        netForce.scale(1/(forces.length+1))
         this.force = netForce.scale(this.maxForce)
         this.velocity = this.velocity.add(this.force)
         if (this.velocity.magnitude() > this.maxSpeed) {
@@ -199,8 +209,23 @@ class Boid {
         this.draw()
     }
 }
-
-
+class Dot {
+    constructor(enviornment, pos = new Vector2() ) {
+        this.position = pos
+        this.radius = 15
+        this.enviornment = enviornment
+        enviornment.dots.push(this)
+    }
+    draw(){
+        let canvas = this.enviornment.canvas
+        var ctx = canvas.getContext("2d");
+        ctx.beginPath();
+        ctx.arc(this.position.x*canvas.width, this.position.y*canvas.height, 15, 0, 2 * Math.PI);
+        ctx.closePath();
+        ctx.fillStyle ='rgb(73, 65, 123)'
+        ctx.fill()
+    }
+}
 class Enviornment {
     constructor(canvas) {
         this.population = new Array();
@@ -210,32 +235,25 @@ class Enviornment {
     }
     generateBoids(count = 1, pos = new Vector2(Math.random(),Math.random())){
         for (var i = 0; i < count; i++) {
-            this.population.push(new Boid(pos, this, this.population.length == 0))
+            this.population.push(new Boid(this, pos, this.population.length == 0))
        }
     }
     populate(count){
         for (var i = 0; i < count; i++) {
             this.generateBoids(1)
-        }  
+        }
     }
-    placeDot(pos = new Vector2(Math.random(),Math.random()) ){
-        this.dots.push(pos)
-    }
-    drawDots(){
-        const canvas = this.canvas
-        const ctx = canvas.getContext("2d");
-        for (let dot of this.dots){
-            ctx.beginPath();
-            ctx.arc(dot.x*canvas.width, dot.x*canvas.height, 15, 0, 2 * Math.PI);
-            ctx.closePath();
-            ctx.fillStyle ='rgb(73, 65, 123)'
-            ctx.fill()
+    dotify(count){
+        for (var i = 0; i < count; i++){
+            var pos = new Vector2()
+            pos.random()
+            new Dot(system,pos)
         }
     }
     getNearDots(boid){
         var nearby = new Array();
         this.dots.forEach(dot => {
-            const delta = dot.sub(boid.position)
+            const delta = boid.position.sub(dot.position)
             if (delta.magnitude() < boid.radius ) {
                 var theta = delta.angle(boid.velocity)
                 if (theta < boid.fieldOfView/2) {
@@ -278,7 +296,9 @@ class Enviornment {
             }
         })
         //Draw barriers
-        this.drawDots()
+        for (let dot of this.dots){
+            dot.draw()
+        }
     }
     play(){
         this.playing = true
@@ -299,31 +319,16 @@ class Enviornment {
     }
 }
 
-let canvas = document.getElementById('canvas')
-let system = new Enviornment(canvas)
+let system = new Enviornment(document.getElementById('canvas'))
 system.populate(100)
-system.placeDot()
-system.placeDot()
-system.placeDot()
 system.play()
 
-//Mouse Stuff
-function elePos(ele) { // jcgregorio
-    var dx = ele.offsetLeft;
-    var dy = ele.offsetTop;
-    while (ele.offsetParent) {
-      ele = ele.offsetParent;
-      dx += ele.offsetLeft;
-      dy += ele.offsetTop;
-    }
-    return new Vector2(dx,dy)
-  }
+// Mouse Stuff
 function onClick(event) {
-    const pos = elePos(canvas)
-    const click = new Vector2(event.clientX,event.clientY)
-    const canvasPos = click.sub(pos)
-    const relativePos = canvasPos.scale(1/canvas.width)
-    system.generateBoids(5,relativePos)
+    var click = new Vector2(event.clientX*1.5,event.clientY*1.5)
+    const relativePos = new Vector2(click.x/canvas.width,click.y/canvas.height)
+    //system.generateBoids(5,relativePos)
+    new Dot(system, relativePos)
   }
   
   document.addEventListener("click", onClick);
