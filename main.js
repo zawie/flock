@@ -163,7 +163,7 @@ class Boid {
         dots.forEach(dot => {
             const diff = this.position.sub(dot.position)
             const distance = diff.magnitude()/this.radius
-            const delta = diff.scale(1/Math.pow(distance,4))
+            const delta = diff.scale(5/Math.pow(distance,4))
             force = force.add(delta)
         })
         return force
@@ -212,7 +212,7 @@ class Boid {
 class Dot {
     constructor(enviornment, pos = new Vector2() ) {
         this.position = pos
-        this.radius = 15
+        this.radius = 10
         this.enviornment = enviornment
         enviornment.dots.push(this)
     }
@@ -220,7 +220,7 @@ class Dot {
         let canvas = this.enviornment.canvas
         var ctx = canvas.getContext("2d");
         ctx.beginPath();
-        ctx.arc(this.position.x*canvas.width, this.position.y*canvas.height, 15, 0, 2 * Math.PI);
+        ctx.arc(this.position.x*canvas.width, this.position.y*canvas.width, this.radius, 0, 2 * Math.PI);
         ctx.closePath();
         ctx.fillStyle ='rgb(73, 65, 123)'
         ctx.fill()
@@ -283,10 +283,11 @@ class Enviornment {
         this.canvas.getContext("2d").clearRect(0, 0, this.canvas.width, this.canvas.height);
         //Animate boids
         this.population.forEach(boid => boid.heartbeat())
+        const ratio = this.canvas.height / this.canvas.width
         this.population.forEach(boid=>{
             if (boid.position.y < 0){
-                boid.position.y = 1
-            } else if(boid.position.y > 1){
+                boid.position.y = ratio
+            } else if(boid.position.y > ratio){
                 boid.position.y = 0
             }
             if (boid.position.x < 0){
@@ -322,8 +323,6 @@ class Enviornment {
 let system = new Enviornment(document.getElementById('canvas'))
 system.populate(150)
 system.play()
-
-// Resive canvas
 
 // Mouse Stuff
 function onClick(event) {
