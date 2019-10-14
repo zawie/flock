@@ -178,19 +178,20 @@ class Boid {
         objects.forEach(object => {
             const diff = this.position.sub(object.position)
             const distance = diff.magnitude()/this.radius
-            const delta = diff.unit().scale(.1/Math.pow(distance,2))
+            const delta = diff.scale(1/Math.pow(distance,3))
             force = force.add(delta)
         })
         return force
     }
     align(nearby) {
         // Allignment
-        var total_velocity = new Vector2()
+        var total_angle = 0
         nearby.forEach(boid => {
-            total_velocity.add(boid.velocity)
+           total_angle += boid.velocity.angle()
         })
-        const average_velocity = total_velocity.scale(1/nearby.length)
-        const force = average_velocity.unit().scale(nearby.length)
+        const theta = total_angle/nearby.length
+        const heading = new Vector2 (Math.cos(theta),Math.sin(theta))
+        const force = heading
         return force
     }
     noise(){
@@ -214,7 +215,7 @@ class Boid {
             netForce.scale(1/(forces.length+1))
         }
         if (this.marked) {
-            console.log(netForce)
+            //console.log(netForce)
         }
         this.force = netForce.scale(this.maxForce)
         this.velocity = this.velocity.add(this.force)
