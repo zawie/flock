@@ -215,7 +215,6 @@ class Boid {
     }
 }
 
-
 class Enviornment {
     constructor(canvas) {
         this.population = new Array();
@@ -247,17 +246,6 @@ class Enviornment {
                 boid.position.x = 0
             }
         })
-    }
-    highlight(x,y){
-        let canvas = this.canvas
-        x = x*canvas.width
-        y = y*canvas.height
-        var ctx = canvas.getContext("2d");
-        ctx.beginPath();
-        ctx.arc(x,y,5,0,2*Math.PI);
-        ctx.closePath();
-        ctx.fillStyle = "#ff0000"; //red
-        ctx.fill()
     }
     play(){
         this.playing = true
