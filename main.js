@@ -114,21 +114,6 @@ class Boid {
         this.maxForce = .00001
         this.mass = 1
     }
-    getVisible(boids){
-        var nearby = new Array();
-        boids.forEach(boid => {
-            if (boid != this) {
-                const delta = boid.position.sub(this.position)
-                if (delta.magnitude() < this.radius ) {
-                    var theta = delta.angle(this.velocity)
-                    if (theta < this.fieldOfView/2) {
-                        nearby.push(boid)
-                    }
-                }
-            }
-        })
-        return nearby
-    }
     draw(){
         let canvas = this.enviornment.canvas
         var ctx = canvas.getContext("2d");
@@ -160,11 +145,11 @@ class Boid {
         const force = average_position.sub(this.position)
         return force.unit()
     }
-    seperate(objects){
+    seperate(nearby){
         //Seperation
         var force = new Vector2()
-        objects.forEach(object => {
-            const diff = this.position.sub(object.position)
+        nearby.forEach(boid => {
+            const diff = this.position.sub(boid.position)
             const distance = diff.magnitude()/this.radius
             const delta = diff.scale(1/Math.pow(distance,4))
             force = force.add(delta)
@@ -190,7 +175,7 @@ class Boid {
         return force
     }
     heartbeat(){
-        const nearby = this.getVisible(this.enviornment.population)
+        const nearby = this.enviornment.getNearBoids(this)
         var netForce = this.noise()
         if (nearby.length > 0) {
             const steerAlign = this.align(nearby)
@@ -215,11 +200,13 @@ class Boid {
     }
 }
 
+
 class Enviornment {
     constructor(canvas) {
         this.population = new Array();
         this.canvas = canvas
         this.playing = false
+        this.dots = []
     }
     generateBoids(count = 1, pos = new Vector2(Math.random(),Math.random())){
         for (var i = 0; i < count; i++) {
@@ -231,8 +218,52 @@ class Enviornment {
             this.generateBoids(1)
         }  
     }
+    placeDot(pos = new Vector2(Math.random(),Math.random()) ){
+        this.dots.push(pos)
+    }
+    drawDots(){
+        const canvas = this.canvas
+        const ctx = canvas.getContext("2d");
+        for (let dot of this.dots){
+            ctx.beginPath();
+            ctx.arc(dot.x*canvas.width, dot.x*canvas.height, 15, 0, 2 * Math.PI);
+            ctx.closePath();
+            ctx.fillStyle ='rgb(73, 65, 123)'
+            ctx.fill()
+        }
+    }
+    getNearDots(boid){
+        var nearby = new Array();
+        this.dots.forEach(dot => {
+            const delta = dot.sub(boid.position)
+            if (delta.magnitude() < boid.radius ) {
+                var theta = delta.angle(boid.velocity)
+                if (theta < boid.fieldOfView/2) {
+                    nearby.push(dot)
+                }
+            }
+        })
+        return nearby
+    }
+    getNearBoids(root_boid){
+        var nearby = new Array();
+        this.population.forEach(boid => {
+            if (boid != root_boid) {
+                const delta = boid.position.sub(root_boid.position)
+                if (delta.magnitude() < root_boid.radius ) {
+                    var theta = delta.angle(root_boid.velocity)
+                    if (theta < root_boid.fieldOfView/2) {
+                        nearby.push(boid)
+                    }
+                }
+            }
+        })
+        return nearby
+    }
     step(){
+        //Clear canvas
         this.canvas.getContext("2d").clearRect(0, 0, this.canvas.width, this.canvas.height);
+        //Animate boids
         this.population.forEach(boid => boid.heartbeat())
         this.population.forEach(boid=>{
             if (boid.position.y < 0){
@@ -246,6 +277,8 @@ class Enviornment {
                 boid.position.x = 0
             }
         })
+        //Draw barriers
+        this.drawDots()
     }
     play(){
         this.playing = true
@@ -269,6 +302,9 @@ class Enviornment {
 let canvas = document.getElementById('canvas')
 let system = new Enviornment(canvas)
 system.populate(100)
+system.placeDot()
+system.placeDot()
+system.placeDot()
 system.play()
 
 //Mouse Stuff
