@@ -241,7 +241,7 @@ class Enviornment {
         this.alignEnabled = true
         this.cohesionEnabled = true
     }
-    generateBoids(count = 1, pos = new Vector2(Math.random(),Math.random())){
+    generateBoids(count = 1, pos = new Vector2(Math.random()*this.canvas.width/this.canvas.height,Math.random())){
         for (var i = 0; i < count; i++) {
             this.population.push(new Boid(this, pos, this.population.length == 0))
        }
@@ -333,10 +333,6 @@ class Enviornment {
     }
 }
 
-let system = new Enviornment(document.getElementById('canvas'))
-system.populate(150)
-system.play()
-
 // Button Handler
 document.addEventListener('DOMContentLoaded', (event) => {
     const playbutton = document.getElementById("toggle interval")
@@ -386,3 +382,8 @@ function onClick(event) {
     new Dot(system, relativePos)
   }
 document.addEventListener("click", onClick);
+
+//Run simulation
+let system = new Enviornment(document.getElementById('canvas'))
+system.populate(100)
+system.play()
