@@ -335,6 +335,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     const slider = document.getElementById("slider")
     slider.oninput = ()=>{
         const new_pop = slider.value
+        document.getElementById('popcount').innerHTML = slider.value
         console.log(this.value)
         const diff = new_pop - system.population.length
         if (diff > 0){
