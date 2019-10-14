@@ -324,6 +324,27 @@ let system = new Enviornment(document.getElementById('canvas'))
 system.populate(150)
 system.play()
 
+// Button Handler
+document.addEventListener('DOMContentLoaded', (event) => {
+    const playbutton = document.getElementById("toggle interval")
+    playbutton.onclick = ()=>{ 
+        system.toggle()
+        playbutton.innerHTML = system.playing && "Pause" || "Play"
+    }
+    
+    const slider = document.getElementById("slider")
+    slider.oninput = ()=>{
+        const new_pop = slider.value
+        console.log(this.value)
+        const diff = new_pop - system.population.length
+        if (diff > 0){
+            system.populate(diff)
+        } else if (diff < 0) {
+            system.population.splice(0,diff*-1)
+        }
+    }
+})
+
 // Mouse Stuff
 function onClick(event) {
     var click = new Vector2(event.clientX*1.3,event.clientY*1.3)
@@ -331,10 +352,4 @@ function onClick(event) {
     //system.generateBoids(5,relativePos)
     new Dot(system, relativePos)
   }
-  
-  document.addEventListener("click", onClick);
-  document.body.onkeyup = function(e){
-    if(e.keyCode == 32){
-        system.toggle()
-    }
-}
+document.addEventListener("click", onClick);
