@@ -118,7 +118,7 @@ class Boid {
         let canvas = this.enviornment.canvas
         var ctx = canvas.getContext("2d");
         const direction = this.velocity.unit()
-        const center = this.position.scale(canvas.width)
+        const center = this.position.scale(canvas.height)
         const heading = direction.angle()
         const phi = heading - 60*Math.PI/180
         const theta = heading + 60*Math.PI/180
@@ -225,7 +225,7 @@ class Dot {
         let canvas = this.enviornment.canvas
         var ctx = canvas.getContext("2d");
         ctx.beginPath();
-        ctx.arc(this.position.x*canvas.width, this.position.y*canvas.width, this.radius, 0, 2 * Math.PI);
+        ctx.arc(this.position.x*canvas.height, this.position.y*canvas.height, this.radius, 0, 2 * Math.PI);
         ctx.closePath();
         ctx.fillStyle ='rgb(73, 65, 123)'
         ctx.fill()
@@ -258,6 +258,10 @@ class Enviornment {
             new Dot(system,pos)
         }
     }
+    scaleToPixel(vect){
+        const h = canvas.h
+        return vect.scale(h)
+    }
     getNearDots(boid){
         var nearby = new Array();
         this.dots.forEach(dot => {
@@ -287,20 +291,21 @@ class Enviornment {
         return nearby
     }
     step(){
+        const canvas = this.canvas
         //Clear canvas
-        this.canvas.getContext("2d").clearRect(0, 0, this.canvas.width, this.canvas.height);
+        canvas.getContext("2d").clearRect(0, 0, this.canvas.width, this.canvas.height);
         //Animate boids
+        const ratio = canvas.width/canvas.height
         this.population.forEach(boid => boid.heartbeat())
-        const ratio = this.canvas.height / this.canvas.width
         this.population.forEach(boid=>{
             if (boid.position.y < 0){
-                boid.position.y = ratio
-            } else if(boid.position.y > ratio){
+                boid.position.y = 1
+            } else if(boid.position.y > 1){
                 boid.position.y = 0
             }
             if (boid.position.x < 0){
-                boid.position.x = 1
-            } else if(boid.position.x > 1){
+                boid.position.x = ratio
+            } else if(boid.position.x > ratio){
                 boid.position.x = 0
             }
         })
@@ -365,10 +370,18 @@ document.addEventListener('DOMContentLoaded', (event) => {
     about.onclick = () => window.open("https://en.wikipedia.org/wiki/Boids")
 })
 
+//canvas ratio lock to window
+function updateRatio(){
+    canvas.width = window.innerWidth
+    canvas.height = window.innerHeight 
+}
+window.onresize = updateRatio
+updateRatio();
 // Mouse Stuff
 function onClick(event) {
-    var click = new Vector2(event.clientX*1.3,event.clientY*1.3)
-    const relativePos = new Vector2(click.x/canvas.width,click.y/canvas.width)
+    var offsetTop = document.getElementById("canvas").offsetTop;
+    var click = new Vector2(event.clientX,event.clientY)
+    const relativePos = new Vector2(click.x/canvas.height,(click.y-offsetTop)/canvas.height)
     //system.generateBoids(5,relativePos)
     new Dot(system, relativePos)
   }
