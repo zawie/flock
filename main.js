@@ -101,11 +101,16 @@ class Boid {
         this.seperateTendency = .1
         this.coohesionTendency = .5
         this.chaosTendency = .1
+        this.size = 5
+        this.rgbString = `rgb(
+            ${Math.floor(Math.random()*80)+155},
+            ${Math.floor(Math.random()*80)+155},
+            ${Math.floor(Math.random()*80)+155})`
         //
         this.position = pos
         this.velocity = new Vector2()
         this.velocity.randomdirection()
-        this.maxSpeed = .001
+        this.maxSpeed = .00075
         this.maxForce = .00001
         this.mass = 1
     }
@@ -126,18 +131,25 @@ class Boid {
     }
     draw(){
         let canvas = this.enviornment.canvas
-        var x = this.position.x*canvas.width
-        var y = this.position.y*canvas.height
-        var dx = (this.position.x + this.velocity.x*10)*canvas.width
-        var dy = (this.position.y + this.velocity.y*10)*canvas.height
         var ctx = canvas.getContext("2d");
-        ctx.beginPath();
-        ctx.arc(x,y,5,0,2*Math.PI);
-        ctx.moveTo(x,y)
-        ctx.lineTo(dx,dy);
-        ctx.closePath();
-        ctx.stroke();
-        if (this.marked) {
+        const direction = this.velocity.unit()
+        const center = this.position.scale(canvas.width)
+        const heading = direction.angle()
+        const phi = heading - 60*Math.PI/180
+        const theta = heading + 60*Math.PI/180
+        const r_leg = new Vector2(Math.cos(phi),Math.sin(phi))
+        const l_leg = new Vector2(Math.cos(theta),Math.sin(theta))
+        const left = center.add(l_leg.scale(this.size))
+        const right = center.add(r_leg.scale(this.size))
+        const point = center.add(direction.scale(3*this.size))
+        ctx.beginPath()
+        ctx.moveTo(point.x,point.y)
+        ctx.lineTo(left.x,left.y)
+        ctx.lineTo(right.x,right.y)
+        ctx.closePath()
+        ctx.fillStyle = this.rgbString;
+        ctx.fill()
+        if (false) { //this.marked
             // fill dot blue
             ctx.fillStyle = "#3370d4"; //blue
             ctx.fill();
@@ -166,9 +178,6 @@ class Boid {
             total_position = total_position.add(boid.position)
         })
         const average_position = total_position.scale(1/nearby.length)
-        if (this.marked){
-            this.enviornment.highlight(average_position.x,average_position.y)
-        }
         const force = average_position.sub(this.position)
         return force.unit()
     }
@@ -178,7 +187,7 @@ class Boid {
         objects.forEach(object => {
             const diff = this.position.sub(object.position)
             const distance = diff.magnitude()/this.radius
-            const delta = diff.scale(1/Math.pow(distance,3))
+            const delta = diff.scale(1/Math.pow(distance,4))
             force = force.add(delta)
         })
         return force
