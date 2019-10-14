@@ -323,10 +323,12 @@ let system = new Enviornment(document.getElementById('canvas'))
 system.populate(150)
 system.play()
 
+// Resive canvas
+
 // Mouse Stuff
 function onClick(event) {
-    var click = new Vector2(event.clientX*1.5,event.clientY*1.5)
-    const relativePos = new Vector2(click.x/canvas.width,click.y/canvas.height)
+    var click = new Vector2(event.clientX*1.3,event.clientY*1.3)
+    const relativePos = new Vector2(click.x/canvas.width,click.y/canvas.width)
     //system.generateBoids(5,relativePos)
     new Dot(system, relativePos)
   }
