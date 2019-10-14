@@ -149,27 +149,6 @@ class Boid {
         ctx.closePath()
         ctx.fillStyle = this.rgbString;
         ctx.fill()
-        if (false) { //this.marked
-            // fill dot blue
-            ctx.fillStyle = "#3370d4"; //blue
-            ctx.fill();
-            // add radius bubble
-            ctx.beginPath();
-            ctx.arc(x,y,this.radius*canvas.height,0,2*Math.PI);
-            ctx.moveTo(x,y)
-            ctx.lineTo(dx,dy);
-            ctx.closePath();
-            ctx.stroke();
-            // add force arrow
-            var ax = (this.position.x + this.force.x*this.radius/this.maxForce)*canvas.width
-            var ay = (this.position.y + this.force.y*this.radius/this.maxForce)*canvas.height
-            ctx.beginPath();
-            ctx.arc(x,y,5,0,2*Math.PI);
-            ctx.moveTo(x,y)
-            ctx.lineTo(ax,ay);
-            ctx.closePath();
-            ctx.stroke();
-        }
     }
     cohesion(nearby){
         // Cohesion
