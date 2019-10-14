@@ -320,7 +320,7 @@ class Enviornment {
 }
 
 let system = new Enviornment(document.getElementById('canvas'))
-system.populate(100)
+system.populate(150)
 system.play()
 
 // Mouse Stuff
