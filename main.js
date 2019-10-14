@@ -344,7 +344,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
     for (let bool of steers){
         const button = document.getElementById(bool)
         button.onclick = ()=>{
-            console.log("ah") 
             system[bool] = !system[bool]
             button.style.color = system[bool] && "rgb(144, 84, 187,1)" || "rgb(144, 84, 187,.25)"
         }
@@ -354,7 +353,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
     slider.oninput = ()=>{
         const new_pop = slider.value
         document.getElementById('popcount').innerHTML = slider.value
-        console.log(this.value)
         const diff = new_pop - system.population.length
         if (diff > 0){
             system.populate(diff)
@@ -362,6 +360,9 @@ document.addEventListener('DOMContentLoaded', (event) => {
             system.population.splice(0,diff*-1)
         }
     }
+
+    const about = document.getElementById('about')
+    about.onclick = () => window.open("https://en.wikipedia.org/wiki/Boids")
 })
 
 // Mouse Stuff

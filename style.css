@@ -6,12 +6,6 @@ body {
     background-color: rgb(77, 33, 114);
 }
 
-#title {
-    color: rgb(255, 255, 255);
-    margin-left: 20px;
-    font-family: Arial, Helvetica, sans-serif
-}
-
 .sidenav {
     position: fixed;
     z-index: 1;
@@ -61,6 +55,17 @@ body {
     padding-top: 5px;
     padding-bottom: 7px;
   }
+.topbar h1 {
+    color: rgb(255, 255, 255);
+    margin-left: 20px;
+    font-family: Arial, Helvetica, sans-serif
+}
+.topbar p {
+    color: rgb(255, 255, 255);
+    margin-left: 20px;
+    font-family: Arial, Helvetica, sans-serif
+}
+
 
 #canvas {
     position:absolute;
@@ -100,3 +105,45 @@ body {
     background: #4CAF50;
     cursor: pointer;
 }
+
+.wikibutton {
+    display: inline-block;
+    position:absolute; top:0; right:0;
+    border-radius: 4px;
+    background-color: rgb(144, 84, 187);
+    border: none;
+    color: #FFFFFF;
+    text-align: center;
+    font-size: 28px;
+    padding: 5px;
+    height: 80%;
+    width: 10%;
+    transition: all 0.5s;
+    cursor: pointer;
+    margin: 5px;
+  }
+  
+  .wikibutton span {
+    cursor: pointer;
+    display: inline-block;
+    position: relative;
+    transition: 0.5s;
+  }
+  
+  .wikibutton span:after {
+    content: '\00bb';
+    position: absolute;
+    opacity: 0;
+    top: 0;
+    right: -20px;
+    transition: 0.5s;
+  }
+  
+  .wikibutton:hover span {
+    padding-right: 25px;
+  }
+  
+  .wikibutton:hover span:after {
+    opacity: 1;
+    right: 0;
+  }
