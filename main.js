@@ -106,7 +106,7 @@ class Boid {
         this.velocity = new Vector2()
         this.velocity.randomdirection()
         this.maxSpeed = .001
-        this.maxForce = .00005
+        this.maxForce = .00001
         this.mass = 1
     }
     getVisible(boids){
@@ -138,12 +138,23 @@ class Boid {
         ctx.closePath();
         ctx.stroke();
         if (this.marked) {
+            // fill dot blue
             ctx.fillStyle = "#3370d4"; //blue
             ctx.fill();
+            // add radius bubble
             ctx.beginPath();
             ctx.arc(x,y,this.radius*canvas.height,0,2*Math.PI);
             ctx.moveTo(x,y)
             ctx.lineTo(dx,dy);
+            ctx.closePath();
+            ctx.stroke();
+            // add force arrow
+            var ax = (this.position.x + this.force.x*this.radius/this.maxForce)*canvas.width
+            var ay = (this.position.y + this.force.y*this.radius/this.maxForce)*canvas.height
+            ctx.beginPath();
+            ctx.arc(x,y,5,0,2*Math.PI);
+            ctx.moveTo(x,y)
+            ctx.lineTo(ax,ay);
             ctx.closePath();
             ctx.stroke();
         }
@@ -155,36 +166,38 @@ class Boid {
             total_position = total_position.add(boid.position)
         })
         const average_position = total_position.scale(1/nearby.length)
-        const force = average_position.sub(this.position).scale(nearby.length)
-        return force
+        if (this.marked){
+            this.enviornment.highlight(average_position.x,average_position.y)
+        }
+        const force = average_position.sub(this.position)
+        return force.unit()
     }
-    seperate(nearby){
+    seperate(objects){
         //Seperation
         var force = new Vector2()
-        nearby.forEach(boid => {
-            const diff = this.position.sub(boid.position)
+        objects.forEach(object => {
+            const diff = this.position.sub(object.position)
             const distance = diff.magnitude()/this.radius
-            const delta = diff.unit().scale(1/Math.pow(distance,3))
+            const delta = diff.unit().scale(.1/Math.pow(distance,2))
             force = force.add(delta)
         })
         return force
     }
     align(nearby) {
         // Allignment
-        var total_angle = 0
+        var total_velocity = new Vector2()
         nearby.forEach(boid => {
-            total_angle += boid.velocity.angle()
+            total_velocity.add(boid.velocity)
         })
-        const theta = total_angle/nearby.length
-        const delta = new Vector2 (Math.sin(theta),Math.cos(theta))
-        const force = delta.scale(nearby.length)
+        const average_velocity = total_velocity.scale(1/nearby.length)
+        const force = average_velocity.unit().scale(nearby.length)
         return force
     }
     noise(){
         const theta = this.velocity.angle()
         const randAngle = (Math.random()-.5)*Math.PI
         const phi = theta + randAngle
-        const force = new Vector2(Math.cos(phi),Math.sin(phi))
+        const force = new Vector2(Math.cos(phi),Math.sin(phi)).scale(Math.random())
         return force
     }
     heartbeat(){
@@ -194,24 +207,21 @@ class Boid {
             const steerAlign = this.align(nearby)
             const steerSeperate = this.seperate(nearby)
             const steerCohesion = this.cohesion(nearby)
-            for (let force of [steerAlign,steerSeperate]){
+            const forces = [steerAlign,steerCohesion,steerSeperate]
+            for (let force of forces){
                 netForce = netForce.add(force)
             }
+            netForce.scale(1/(forces.length+1))
         }
-
-        if (netForce.magnitude() > this.maxForce) {
-            netForce = netForce.unit().scale(this.maxForce)
+        if (this.marked) {
+            console.log(netForce)
         }
-        var acceleration = netForce.scale(1/this.mass)
-        this.velocity = this.velocity.add(acceleration)
+        this.force = netForce.scale(this.maxForce)
+        this.velocity = this.velocity.add(this.force)
         if (this.velocity.magnitude() > this.maxSpeed) {
             this.velocity = this.velocity.unit().scale(this.maxSpeed)
         }
-        if (this.marked) {
-            //console.log(netForce)
-        }
         this.position = this.position.add(this.velocity)
-
         this.draw()
     }
 }
@@ -223,14 +233,8 @@ class Enviornment {
         this.canvas = canvas
         this.playing = false
     }
-    generateBoids(count = 1, origin = new Vector2(Math.random(),Math.random())){
+    generateBoids(count = 1, pos = new Vector2(Math.random(),Math.random())){
         for (var i = 0; i < count; i++) {
-            var pos = origin
-            if (i > 0) {
-                var direction = new Vector2();
-                direction.randomdirection()
-                var pos = origin.add(direction.scale(.001*Math.pow(i,count)))
-            }
             this.population.push(new Boid(pos, this, this.population.length == 0))
        }
     }
@@ -255,6 +259,17 @@ class Enviornment {
             }
         })
     }
+    highlight(x,y){
+        let canvas = this.canvas
+        x = x*canvas.width
+        y = y*canvas.height
+        var ctx = canvas.getContext("2d");
+        ctx.beginPath();
+        ctx.arc(x,y,5,0,2*Math.PI);
+        ctx.closePath();
+        ctx.fillStyle = "#ff0000"; //red
+        ctx.fill()
+    }
     play(){
         this.playing = true
         this.current_interval = window.setInterval(() => {
@@ -276,7 +291,7 @@ class Enviornment {
 
 let canvas = document.getElementById('canvas')
 let system = new Enviornment(canvas)
-system.populate(10)
+system.populate(100)
 system.play()
 
 //Mouse Stuff
