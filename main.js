@@ -163,7 +163,7 @@ class Boid {
         dots.forEach(dot => {
             const diff = this.position.sub(dot.position)
             const distance = diff.magnitude()/this.radius
-            const delta = diff.scale(5/Math.pow(distance,4))
+            const delta = diff.scale(100/Math.pow(distance,10))
             force = force.add(delta)
         })
         return force
